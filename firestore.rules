@@ -1,0 +1,93 @@
+rules_version = '2';
+
+// CampusFix security rules
+// Collections: buildings, rooms, reports, statusHistory, staff
+// - Anyone may CREATE a report, only with valid fields and only for a room that exists (like a foreign key).
+// - Only staff may READ reports, CHANGE their status, read the history, export and restore.
+// - Every status change is written to statusHistory; history lines can never be edited.
+// - A user is staff if a document staff/{their UID} exists (added by the owner in the Firebase Console).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isStaff() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid));
+    }
+
+    function roomExists(room) {
+      return exists(/databases/$(database)/documents/rooms/$(room));
+    }
+
+    // fields that every report must have, checked on the server
+    function validReportFields(d) {
+      return d.room is string && d.room.size() > 0 && d.room.size() <= 20
+        && roomExists(d.room)
+        && d.building == get(/databases/$(database)/documents/rooms/$(d.room)).data.buildingId
+        && d.category in ['Projector', 'Computer', 'Socket', 'Furniture',
+                          'Air conditioner', 'Restroom', 'Lights', 'Other']
+        && d.description is string && d.description.size() <= 300
+        && (d.photo == null || (d.photo is string && d.photo.size() < 700000))
+        && (d.email == null || (d.email is string && d.email.size() <= 100))
+        && d.status in ['New', 'In progress', 'Fixed']
+        && d.createdAt is timestamp;
+    }
+
+    // a report sent from the public form
+    function validNewReport(d) {
+      return d.keys().hasOnly(['room', 'building', 'category', 'description', 'photo', 'email', 'status', 'createdAt'])
+        && validReportFields(d)
+        && d.status == 'New'
+        && d.createdAt == request.time;
+    }
+
+    // a report added by staff: test data or restore from a backup
+    function validImportedReport(d) {
+      return d.keys().hasOnly(['room', 'building', 'category', 'description', 'photo', 'email', 'status',
+                               'createdAt', 'updatedAt', 'test'])
+        && validReportFields(d)
+        && d.createdAt <= request.time;
+    }
+
+    match /buildings/{buildingId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    match /reports/{reportId} {
+      allow create: if validNewReport(request.resource.data)
+        || (isStaff() && validImportedReport(request.resource.data));
+      allow read: if isStaff();
+      // staff may change the status, or remove the e-mail (privacy: e-mails are kept 30 days)
+      allow update: if isStaff()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'email'])
+        && request.resource.data.status in ['New', 'In progress', 'Fixed']
+        && (request.resource.data.email == resource.data.email || request.resource.data.email == null);
+      // real reports are never deleted; only test reports can be removed
+      allow delete: if isStaff() && resource.data.get('test', false) == true;
+    }
+
+    match /statusHistory/{historyId} {
+      allow read: if isStaff();
+      // live change: must be signed with your own e-mail and the server time
+      // import (test data / restore): only for an existing report and a time in the past
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly(['reportId', 'from', 'to', 'by', 'at', 'test'])
+        && request.resource.data.to in ['New', 'In progress', 'Fixed']
+        && ((request.resource.data.by == request.auth.token.email && request.resource.data.at == request.time)
+            || (request.resource.data.at < request.time
+                && existsAfter(/databases/$(database)/documents/reports/$(request.resource.data.reportId))));
+      allow update: if false;
+      allow delete: if isStaff() && resource.data.get('test', false) == true;
+    }
+
+    match /staff/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}

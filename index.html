@@ -1,0 +1,1954 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%232f3b8f%22/%3E%3Cpath d=%22M9 17l5 5 9-11%22 stroke=%22white%22 stroke-width=%224%22 fill=%22none%22/%3E%3C/svg%3E">
+  <title>CampusFix</title>
+  <meta name="description" content="Report broken equipment in a university classroom in under one minute.">
+<style>
+/* CampusFix styles (plain CSS, no framework) */
+:root {
+  --cf-primary: #2f3b8f;
+  --cf-primary-dark: #222c70;
+  --cf-bg: #f4f5fb;
+  --cf-text: #1d1f2b;
+  --cf-muted: #5b6070;
+  --cf-new: #fdecea;
+  --cf-new-text: #9b1c1c;
+  --cf-progress: #fff3e0;
+  --cf-progress-text: #8a4b00;
+  --cf-fixed: #e6f4ea;
+  --cf-fixed-text: #1e6b34;
+}
+
+/* ===== Base styles and utilities (no external CSS framework needed) ===== */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  line-height: 1.5;
+}
+h1, h2, h3 { margin: 0 0 .5rem; line-height: 1.2; }
+p { margin: 0 0 1rem; }
+img { max-width: 100%; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend { padding: 0; }
+code { font-size: .9em; }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+.container { width: 100%; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 1rem; }
+.row > * { flex: 1 1 100%; }
+@media (min-width: 768px) { .col-md-6 { flex: 1 1 calc(50% - .5rem); } }
+
+.d-none { display: none !important; }
+.d-block { display: block; }
+.d-flex { display: flex; }
+.d-sm-inline { display: none; }
+@media (min-width: 576px) { .d-sm-inline { display: inline; } }
+.flex-wrap { flex-wrap: wrap; }
+.justify-content-between { justify-content: space-between; }
+.align-items-center { align-items: center; }
+.align-items-end { align-items: flex-end; }
+.gap-2 { gap: .5rem; } .gap-3 { gap: 1rem; }
+.ms-auto { margin-left: auto; } .mx-auto { margin-left: auto; margin-right: auto; }
+.w-100 { width: 100%; }
+.overflow-hidden { overflow: hidden; }
+.p-0 { padding: 0 !important; }
+.px-2 { padding-left: .5rem; padding-right: .5rem; }
+.py-1 { padding-top: .25rem; padding-bottom: .25rem; }
+.py-2 { padding-top: .5rem; padding-bottom: .5rem; }
+.py-3 { padding-top: 1rem; padding-bottom: 1rem; }
+.py-4 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+.pb-4 { padding-bottom: 1.5rem; }
+.mb-0 { margin-bottom: 0 !important; } .mb-1 { margin-bottom: .25rem; } .mb-2 { margin-bottom: .5rem; }
+.mb-3 { margin-bottom: 1rem; } .mb-4 { margin-bottom: 1.5rem; }
+.mt-2 { margin-top: .5rem; } .mt-3 { margin-top: 1rem; }
+.text-center { text-align: center; } .text-end { text-align: right; }
+.text-nowrap { white-space: nowrap; }
+.text-secondary { color: var(--cf-muted) !important; }
+.text-danger { color: #b42318; }
+.small { font-size: .875rem; }
+.fs-6 { font-size: 1rem; }
+.fw-normal { font-weight: 400 !important; } .fw-semibold { font-weight: 600; } .fw-bold { font-weight: 700; }
+.h4 { font-size: 1.4rem; } .h6 { font-size: 1rem; }
+.rounded { border-radius: 8px; } .img-fluid { max-width: 100%; height: auto; }
+.visually-hidden {
+  position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important;
+  margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important; border: 0 !important;
+}
+
+/* forms */
+.form-label { display: inline-block; margin-bottom: .4rem; }
+.form-text { font-size: .85rem; color: var(--cf-muted); margin-top: .3rem; }
+.form-control, .form-select {
+  display: block; width: 100%; min-height: 44px; padding: .55rem .75rem;
+  font-size: 1rem; background: #fff; border: 1px solid #b9bed8; border-radius: 8px;
+}
+.form-control::placeholder { color: #8a8fa3; }
+.form-control-lg { min-height: 52px; font-size: 1.1rem; }
+.form-select {
+  appearance: none; -webkit-appearance: none; padding-right: 2rem; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, #555 50%), linear-gradient(135deg, #555 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.form-select-sm { min-height: 36px; padding: .3rem 2rem .3rem .6rem; font-size: .9rem; }
+textarea.form-control { resize: vertical; }
+.form-control:focus, .form-select:focus { border-color: var(--cf-primary); outline: 3px solid #c9cef3; }
+.btn-check { position: absolute; clip: rect(0, 0, 0, 0); pointer-events: none; }
+
+/* buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .3rem;
+  padding: .5rem 1rem; min-height: 44px; border: 1px solid transparent; border-radius: 8px;
+  font-weight: 600; text-decoration: none; cursor: pointer; text-align: center; line-height: 1.2;
+  background: transparent; color: inherit; user-select: none;
+}
+.btn:disabled { opacity: .65; cursor: default; }
+.btn-sm { min-height: 34px; padding: .3rem .7rem; font-size: .875rem; }
+.btn-primary { color: #fff; }
+.btn-outline-primary { color: var(--cf-primary); border-color: var(--cf-primary); background: #fff; }
+.btn-outline-primary:hover { background: #eef0fa; }
+.btn-light { background: #fff; color: var(--cf-primary); }
+.btn-outline-light { border-color: rgba(255,255,255,.8); color: #fff; }
+.btn-outline-light:hover { background: rgba(255,255,255,.15); }
+.btn-link { color: var(--cf-primary); text-decoration: underline; padding-left: 0; min-height: 32px; }
+
+/* alerts and badges */
+.alert { padding: .75rem 1rem; border-radius: 8px; border: 1px solid transparent; margin-bottom: 1rem; }
+.alert-danger { background: #fdecea; color: #8a1c1c; border-color: #f3b7b0; }
+.alert-success { background: #e6f4ea; color: #1e5b30; border-color: #a9d8b7; }
+.badge { display: inline-block; border-radius: 999px; font-weight: 700; font-size: .85rem; }
+.border { border: 1px solid #ccc; }
+
+/* table */
+.table-responsive { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: .65rem .75rem; border-bottom: 1px solid #e3e5ef; text-align: left; }
+.table-light th { background: #f1f2f8; font-size: .85rem; text-transform: uppercase; letter-spacing: .3px; color: #4a4f63; }
+
+/* photo dialog */
+dialog.photo-dialog { border: 0; border-radius: 12px; padding: 0; max-width: min(92vw, 900px); }
+dialog.photo-dialog::backdrop { background: rgba(15, 18, 40, .6); }
+.photo-dialog header { display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  padding: .7rem 1rem; border-bottom: 1px solid #e3e5ef; }
+.photo-dialog .body { padding: 1rem; text-align: center; }
+
+body {
+  background: var(--cf-bg);
+  color: var(--cf-text);
+  font-size: 16px;            /* R11 / accessibility: readable base size */
+}
+
+a { color: var(--cf-primary); }
+
+.cf-header {
+  background: var(--cf-primary);
+  color: #fff;
+}
+.cf-header .brand { font-weight: 800; letter-spacing: .3px; font-size: 1.25rem; }
+.cf-header .brand span { opacity: .75; font-weight: 500; font-size: .85rem; margin-left: .4rem; }
+
+.demo-banner {
+  background: #fff8d6;
+  border-bottom: 1px solid #f0de8a;
+  font-size: .85rem;
+  color: #5c4a00;
+}
+
+/* ---------- report form (phone first) ---------- */
+.cf-main { max-width: 520px; }
+
+.cf-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(20, 24, 60, .08);
+  padding: 1.1rem;
+}
+
+.room-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #eef0fa;
+  border: 1px solid #cdd2ee;
+  border-radius: 10px;
+  padding: .6rem .8rem;
+  font-weight: 700;
+}
+.room-chip small { font-weight: 500; color: var(--cf-muted); }
+
+.form-label { font-weight: 700; }
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));   /* R11: columns may shrink (was 1fr 1fr) */
+  gap: .5rem;
+}
+.cat-grid .btn {
+  min-height: 48px;            /* touch target >= 44 px (R11) */
+  min-width: 0;                /* R11: long labels wrap instead of widening the page */
+  padding-left: .5rem; padding-right: .5rem;
+  flex-wrap: wrap; overflow-wrap: break-word; hyphens: auto;
+  font-weight: 600;
+  border-width: 2px;
+}
+.btn-check:checked + .btn-outline-cat,
+.btn-outline-cat:active {
+  background: var(--cf-primary);
+  border-color: var(--cf-primary);
+  color: #fff;
+}
+.btn-outline-cat {
+  border-color: #b9bed8;
+  color: var(--cf-text);
+  background: #fff;
+}
+.btn-outline-cat:hover { border-color: var(--cf-primary); color: var(--cf-primary); background: #f6f7ff; }
+
+.btn-primary {
+  background: var(--cf-primary);
+  border-color: var(--cf-primary);
+}
+.btn-primary:hover, .btn-primary:focus { background: var(--cf-primary-dark); border-color: var(--cf-primary-dark); }
+
+.btn-send { min-height: 56px; font-weight: 800; font-size: 1.1rem; letter-spacing: .5px; }
+
+.photo-drop {
+  border: 2px dashed #b9bed8;
+  border-radius: 10px;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--cf-primary);
+  background: #fafbff;
+}
+.photo-drop:focus-within { outline: 3px solid #9aa3e6; }
+.photo-preview img { max-height: 140px; border-radius: 8px; }
+
+:focus-visible { outline: 3px solid #9aa3e6 !important; outline-offset: 2px; }
+
+.success-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--cf-fixed); color: var(--cf-fixed-text);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem; margin: 0 auto;
+}
+.report-number { font-size: 2rem; font-weight: 800; letter-spacing: 2px; color: var(--cf-primary); }
+
+/* ---------- status badges (text + colour, not colour only) ---------- */
+.status-New { background: var(--cf-new); color: var(--cf-new-text); border-color: #f3b7b0 !important; }
+.status-In-progress { background: var(--cf-progress); color: var(--cf-progress-text); border-color: #f2cf96 !important; }
+.status-Fixed { background: var(--cf-fixed); color: var(--cf-fixed-text); border-color: #a9d8b7 !important; }
+
+/* ---------- admin ---------- */
+.admin-main { max-width: 1200px; }
+.counter {
+  background: var(--cf-new);
+  color: var(--cf-new-text);
+  font-weight: 700;
+  border-radius: 999px;
+  padding: .35rem .9rem;
+}
+.table-reports td, .table-reports th { vertical-align: middle; }
+.table-reports .thumb {
+  width: 56px; height: 42px; object-fit: cover; border-radius: 6px;
+  cursor: zoom-in; border: 1px solid #ddd;
+}
+.status-select { min-width: 140px; font-weight: 700; border: 1px solid; }
+.empty-state { color: var(--cf-muted); }
+
+/* ---------- QR page ---------- */
+.qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+.qr-card {
+  background: #fff; border: 1px solid #ccd; border-radius: 12px; padding: 1rem; text-align: center;
+  break-inside: avoid;
+}
+.qr-card .qr-box { display: inline-block; padding: 6px; background: #fff; }
+.qr-card .room { font-size: 1.4rem; font-weight: 800; margin-top: .4rem; }
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  .qr-card { border: 1px dashed #999; }
+}
+
+/* ---------- one-page views ---------- */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ---------- admin tools ---------- */
+.tools-bar { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #dee2e6; }
+.tools-bar .btn { min-height: 40px; display: inline-flex; align-items: center; cursor: pointer; }
+.num-btn { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: var(--cf-primary, #2d3a8c);
+  text-decoration: underline; cursor: pointer; white-space: nowrap; }
+#histModal .body, #roomsModal .body { min-width: min(86vw, 520px); max-height: 70vh; overflow: auto; text-align: left; }
+.rooms-table td, .rooms-table th { padding: .3rem .5rem; font-size: .9rem; }
+
+
+/* ===== Assignment 4: media ===== */
+.cf-header .brand { display: flex; align-items: center; flex-wrap: wrap; gap: .1rem .5rem; }
+.cf-header .brand span { white-space: nowrap; }
+.cf-header .brand img { width: 28px; height: 28px; display: block; border-radius: 8px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .55); }
+.alert-warning { background: #fff3e0; color: #6b3a00; border-color: #f2cf96; }
+.howto { margin: 0 0 1rem; }
+.howto img { display: block; width: 100%; height: auto; border-radius: 10px; }
+.cat-grid .btn { display: flex; align-items: center; justify-content: center; gap: .45rem; }
+.cat-ico { width: 20px; height: 20px; flex: none; }
+.success-icon svg { width: 44px; height: 44px; }
+.success-icon { animation: cf-pop .45s ease-out both; }
+.success-icon path { stroke-dasharray: 30; stroke-dashoffset: 30; animation: cf-draw .5s .25s ease-out forwards; }
+@keyframes cf-pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes cf-draw { to { stroke-dashoffset: 0; } }
+.counter.pulse { animation: cf-pulse 1s ease-out 3; }
+@keyframes cf-pulse { 0% { box-shadow: 0 0 0 0 rgba(155, 28, 28, .45); } 100% { box-shadow: 0 0 0 12px rgba(155, 28, 28, 0); } }
+.sound-btn { display: inline-flex; align-items: center; gap: .35rem; }
+.sound-btn svg { width: 18px; height: 18px; }
+.stats-card { margin-bottom: 1rem; }
+.stats-card summary { cursor: pointer; font-weight: 600; padding: .75rem 1rem; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem 2rem; padding: 0 1rem 1rem; }
+.stat-nums { display: flex; gap: 1.5rem; }
+.stat-nums b { display: block; font-size: 1.5rem; line-height: 1.1; color: #1d1f2b; }
+.stat-nums span { font-size: .8rem; color: #5b6070; }
+.stat-row { display: grid; grid-template-columns: 7.5rem 1fr 2.5rem; align-items: center; gap: .5rem; font-size: .85rem; margin: .2rem 0; }
+.stat-bar { height: 10px; background: #2f3b8f; border-radius: 0 4px 4px 0; min-width: 2px; }
+.stat-row .v { text-align: right; color: #1d1f2b; font-variant-numeric: tabular-nums; }
+.stats-card h3 { font-size: .85rem; font-weight: 600; color: #5b6070; margin: .25rem 0 .4rem; }
+@media (prefers-reduced-motion: reduce) {
+  .success-icon, .success-icon path, .counter.pulse { animation: none; stroke-dashoffset: 0; }
+}
+
+/* ===== Final: clearer hints, status check, spam (Stage 2 plan items 4, 6, 8) ===== */
+.opt-hint { display: inline-block; margin-left: .35rem; padding: 0 .45rem; font-size: .85rem; font-weight: 600;
+  color: #2f3b8f; background: #e8ebf7; border-radius: 6px; vertical-align: middle; }
+.status-check { margin-top: 1rem; }
+.status-check summary { cursor: pointer; font-weight: 600; color: #2f3b8f; min-height: 44px; display: flex; align-items: center; }
+.status-check .row-in { display: flex; gap: .5rem; }
+.status-check .row-in input { text-transform: uppercase; letter-spacing: .1em; }
+.spam-btn { margin-top: .3rem; font-size: .8rem; padding: .1rem .5rem; }
+</style>
+</head>
+<body>
+  <header class="cf-header py-3 no-print">
+    <div id="headWrap" class="container cf-main d-flex justify-content-between align-items-center gap-2">
+      <div class="brand"><img src="img/logo.svg" alt="" width="28" height="28">CampusFix <span id="headSub">Report a problem</span></div>
+      <div id="userBox" class="d-none d-flex align-items-center gap-2">
+        <span id="userEmail" class="small d-sm-inline"></span>
+        <a id="navQr" href="#qr" class="btn btn-sm btn-light">QR codes</a>
+        <a id="navAdmin" href="#admin" class="btn btn-sm btn-light d-none">Reports</a>
+        <button id="logoutBtn" class="btn btn-sm btn-outline-light">Log out</button>
+      </div>
+    </div>
+  </header>
+  <div id="demoBanner" class="demo-banner py-2 d-none no-print">
+    <div id="demoWrap" class="container cf-main"><span id="demoText"></span></div>
+  </div>
+
+  <!-- ==================== VIEW 1: REPORT FORM (default) ==================== -->
+  <div id="viewReport" class="view">
+  <main class="container cf-main py-3">
+    <section id="formScreen" aria-labelledby="formTitle">
+      <h1 id="formTitle" class="visually-hidden">Report a broken item</h1>
+      <form id="reportForm" class="cf-card" novalidate>
+        <figure class="howto">
+          <img src="img/howto-400.webp" srcset="img/howto-400.webp 400w, img/howto-800.webp 800w"
+               sizes="(max-width: 520px) calc(100vw - 64px), 456px" width="400" height="150" decoding="async"
+               alt="How it works: 1, scan the QR code on the sticker in the room; 2, choose what is broken; 3, send the report.">
+        </figure>
+        <div class="mb-3">
+          <div id="roomChip" class="room-chip d-none" aria-live="polite">
+            <span>Room <span id="roomText"></span></span>
+            <small>from QR code</small>
+          </div>
+          <div id="roomInputWrap" class="d-none">
+            <label for="roomInput" class="form-label">Room</label>
+            <input id="roomInput" class="form-control form-control-lg" placeholder="e.g. C1.1.334L or 334L" maxlength="20" autocomplete="off" list="roomList">
+            <datalist id="roomList"></datalist>
+            <div class="form-text">Tip: scan the QR code in the classroom and the room is filled in automatically.</div>
+          </div>
+        </div>
+        <fieldset class="mb-3">
+          <legend class="form-label fs-6 mb-2">What is broken? <span class="text-danger" aria-hidden="true">*</span></legend>
+          <div id="catGrid" class="cat-grid" role="radiogroup" aria-required="true"></div>
+        </fieldset>
+        <div class="mb-3">
+          <label for="description" class="form-label">Describe the problem</label>
+          <textarea id="description" class="form-control" rows="3" maxlength="300" placeholder="e.g. The microphone does not work"></textarea>
+          <div class="form-text text-end"><span id="charCount">0</span>/300</div>
+        </div>
+        <div class="mb-3">
+          <span class="form-label d-block">Photo <span class="opt-hint">optional</span></span>
+          <label class="photo-drop" for="photo" id="photoLabel">+ Add photo</label>
+          <input type="file" id="photo" accept="image/*" class="visually-hidden">
+          <div id="photoPreview" class="photo-preview mt-2 d-none">
+            <img id="photoImg" alt="Preview of the attached photo">
+            <button type="button" id="photoRemove" class="btn btn-link btn-sm">Remove photo</button>
+          </div>
+          <div id="photoInfo" class="form-text"></div>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">E-mail for updates <span class="opt-hint">optional</span></label>
+          <input type="email" id="email" class="form-control" placeholder="you@example.com" maxlength="100" autocomplete="email">
+          <div class="form-text">Leave empty to report anonymously.</div>
+          <div class="form-text" id="emailPrivacy">We use your e-mail only to tell you when the problem is fixed. It is deleted after 30 days.</div>
+        </div>
+        <div id="formError" class="alert alert-danger d-none" role="alert" aria-live="assertive"></div>
+        <button id="sendBtn" type="submit" class="btn btn-primary btn-send w-100">SEND REPORT</button>
+        <p class="text-center text-secondary small mt-2 mb-0">No login needed. Takes under 1 minute.</p>
+      </form>
+    </section>
+
+    <section id="successScreen" class="cf-card text-center d-none" aria-live="polite" tabindex="-1">
+      <div class="success-icon mb-3" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h1 class="h4 fw-bold">Report sent. Thank you!</h1>
+      <p class="mb-1 text-secondary">Your report number</p>
+      <div id="reportNumber" class="report-number mb-2"></div>
+      <p class="mb-1">Room <strong id="sRoom"></strong> · <span id="sCat"></span></p>
+      <p class="mb-3">Status: <span class="badge border status-New px-2 py-1">New</span></p>
+      <p id="sEmailNote" class="small text-secondary"></p>
+      <button id="againBtn" class="btn btn-outline-primary w-100" style="min-height:48px">Report another problem</button>
+      <p class="small text-secondary mt-3 mb-0">Keep this number: you can check the status below at any time.</p>
+    </section>
+    <details id="statusCheck" class="cf-card status-check">
+      <summary>Check the status of my report</summary>
+      <form id="statusForm" class="mt-2" novalidate>
+        <label for="statusCode" class="form-label small">Report number (6 characters, from the “Report sent” screen)</label>
+        <div class="row-in">
+          <input id="statusCode" class="form-control" maxlength="7" autocomplete="off" placeholder="#1WLNER" required>
+          <button type="submit" class="btn btn-primary" style="min-width:96px">Check</button>
+        </div>
+        <p id="statusResult" class="mt-2 mb-0" aria-live="polite"></p>
+      </form>
+    </details>
+  </main>
+  <footer class="container cf-main pb-4 text-center small text-secondary">
+    CampusFix · ICT project · <a href="#admin">Staff login</a>
+  </footer>
+  </div>
+
+  <!-- ==================== VIEW 2: ADMIN PANEL (#admin) ==================== -->
+  <div id="viewAdmin" class="view">
+  <main class="container admin-main py-4">
+    <section id="loginScreen" class="d-none mx-auto" style="max-width:420px">
+      <form id="loginForm" class="cf-card">
+        <h1 class="h4 fw-bold mb-3">Staff login</h1>
+        <div class="mb-3">
+          <label for="loginEmail" class="form-label">E-mail</label>
+          <input id="loginEmail" type="email" class="form-control" autocomplete="username" required>
+        </div>
+        <div class="mb-3">
+          <label for="loginPass" class="form-label">Password</label>
+          <input id="loginPass" type="password" class="form-control" autocomplete="current-password" required>
+        </div>
+        <div id="loginError" class="alert alert-danger d-none" role="alert"></div>
+        <button class="btn btn-primary w-100" style="min-height:48px" type="submit">Log in</button>
+        <p class="text-center small mt-3 mb-0"><a href="#">Back to the report form</a></p>
+      </form>
+    </section>
+
+    <section id="panelScreen" class="d-none">
+      <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
+        <div>
+          <label for="fBuilding" class="form-label small mb-1">Building</label>
+          <select id="fBuilding" class="form-select"><option value="">All</option></select>
+        </div>
+        <div>
+          <label for="fRoom" class="form-label small mb-1">Room</label>
+          <select id="fRoom" class="form-select"><option value="">All</option></select>
+        </div>
+        <div>
+          <label for="fStatus" class="form-label small mb-1">Status</label>
+          <select id="fStatus" class="form-select">
+            <option value="">All</option>
+            <option>New</option><option>In progress</option><option>Fixed</option>
+          </select>
+        </div>
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <button type="button" id="soundBtn" class="btn btn-sm btn-outline-primary sound-btn" aria-pressed="false"
+                  title="Play a short sound when a new report arrives"><svg aria-hidden="true" focusable="false"><use
+                  href="img/icons.svg#i-bell"/></svg><span id="soundTxt">Sound: off</span></button>
+          <span id="counter" class="counter" aria-live="polite"></span>
+        </div>
+        <audio id="newSound" src="sound/new-report.mp3" preload="none"></audio>
+      </div>
+      <details id="statsCard" class="cf-card stats-card" open>
+        <summary>Statistics</summary>
+        <div class="stats-grid">
+          <div>
+            <h3>All reports</h3>
+            <div class="stat-nums" id="statNums"></div>
+            <h3 style="margin-top:1rem">Average time to fix</h3>
+            <div class="stat-nums" id="statFix"></div>
+          </div>
+          <div>
+            <h3>Reports by category</h3>
+            <div id="statCats"></div>
+          </div>
+        </div>
+      </details>
+      <div class="cf-card p-0 overflow-hidden">
+        <div class="table-responsive">
+          <table class="table table-reports mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">#</th><th scope="col">Room</th><th scope="col">Category</th>
+                <th scope="col">Description</th><th scope="col">Photo</th><th scope="col">Date</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <p id="empty" class="empty-state text-center py-4 mb-0 d-none">No reports match the filters.</p>
+      </div>
+      <p class="small text-secondary mt-2">The list updates in real time. Change a status and the reporter gets an e-mail (if they left one). Click a report number to see who changed its status and when.</p>
+      <div id="toast" class="alert d-none mt-2" role="status" aria-live="polite"></div>
+      <div class="tools-bar">
+        <button type="button" id="roomsBtn" class="btn btn-sm btn-outline-primary">Buildings &amp; rooms</button>
+        <button type="button" id="csvBtn" class="btn btn-sm btn-outline-primary">Download all reports (CSV)</button>
+        <button type="button" id="backupBtn" class="btn btn-sm btn-outline-primary">Download backup (JSON)</button>
+        <label class="btn btn-sm btn-outline-primary mb-0" for="restoreFile">Restore from backup</label>
+        <input type="file" id="restoreFile" accept=".json,application/json" class="d-none">
+        <button type="button" id="seedBtn" class="btn btn-sm btn-outline-primary">Fill with test reports</button>
+        <button type="button" id="unseedBtn" class="btn btn-sm btn-outline-primary">Remove test reports</button>
+      </div>
+    </section>
+  </main>
+  <dialog id="photoModal" class="photo-dialog" aria-labelledby="photoTitle">
+    <header>
+      <h2 class="h6 mb-0" id="photoTitle">Photo</h2>
+      <button type="button" id="photoClose" class="btn btn-sm btn-outline-primary">Close</button>
+    </header>
+    <div class="body"><img id="photoBig" class="img-fluid rounded" alt=""></div>
+  </dialog>
+  <dialog id="histModal" class="photo-dialog" aria-labelledby="histTitle">
+    <header>
+      <h2 class="h6 mb-0" id="histTitle">Status history</h2>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-close>Close</button>
+    </header>
+    <div class="body text-start"><table class="table table-sm mb-0"><thead><tr><th>When</th><th>Change</th><th>Who</th></tr></thead><tbody id="histRows"></tbody></table></div>
+  </dialog>
+  <dialog id="roomsModal" class="photo-dialog" aria-labelledby="roomsTitle">
+    <header>
+      <h2 class="h6 mb-0" id="roomsTitle">Buildings &amp; rooms</h2>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-close>Close</button>
+    </header>
+    <div class="body text-start" id="roomsBody"></div>
+  </dialog>
+  </div>
+
+  <!-- ==================== VIEW 3: QR CODES (#qr) ==================== -->
+  <div id="viewQr" class="view">
+  <main class="container admin-main py-4">
+    <form id="qrForm" class="cf-card mb-4 no-print">
+      <div class="row">
+        <div class="col-md-6">
+          <label for="baseUrl" class="form-label">Site address</label>
+          <input id="baseUrl" class="form-control">
+          <div class="form-text">After deploying, this is your Firebase address, e.g. https://campusfix-xxxx.web.app/</div>
+        </div>
+        <div class="col-md-6">
+          <label for="rooms" class="form-label">Rooms (one per line)</label>
+          <textarea id="rooms" class="form-control" rows="4">A-204
+A-301
+B-112
+B-115
+C-010</textarea>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button class="btn btn-primary" type="submit">Make QR codes</button>
+        <button class="btn btn-outline-primary" type="button" onclick="window.print()">Print stickers</button>
+        <a class="btn btn-outline-primary" href="#admin">Back to reports</a>
+      </div>
+    </form>
+    <div id="qrGrid" class="qr-grid"></div>
+  </main>
+  </div>
+
+  <!-- ==================== LIBRARIES ==================== -->
+  <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- ==================== 1. SETTINGS: paste your keys here ==================== -->
+<script>
+/*
+ * CampusFix configuration.
+ *
+ * 1) Firebase: Firebase Console -> Project settings -> Your apps -> Web app -> "SDK setup and configuration"
+ *    -> choose "Config" and paste the values below.
+ *    While apiKey starts with "PASTE", the site runs in DEMO MODE: reports are stored only in this browser.
+ *
+ * 2) EmailJS (optional, for R8 e-mail notifications): https://www.emailjs.com -> Account -> Public key,
+ *    Email Services -> Service ID, Email Templates -> Template ID.
+ */
+window.FIREBASE_CONFIG = {
+  apiKey: "AIzaSyC0ztMgCwKdYJW6gnuXtUqRFkjpultIMyM",
+  authDomain: "campusfix-2621.firebaseapp.com",
+  projectId: "campusfix-2621",
+  storageBucket: "campusfix-2621.firebasestorage.app",
+  messagingSenderId: "5694052052",
+  appId: "1:5694052052:web:2239eb2adbaa655e0ccd41",
+  measurementId: "G-XLD5E7T588"
+};
+
+window.EMAILJS_CONFIG = {
+  publicKey: "-TWcq7dV4c5lojSLo",
+  serviceId: "service_czde5md",
+  templateId: "template_39ah2s9"
+};
+
+/* Problem categories (must match firestore.rules) */
+window.CATEGORIES = [
+  "Projector", "Computer", "Socket", "Furniture",
+  "Air conditioner", "Restroom", "Lights", "Other"
+];
+window.STATUSES = ["New", "In progress", "Fixed"];
+
+/* E-mails of reporters are kept only this many days, then removed (data minimisation) */
+window.EMAIL_KEEP_DAYS = 30;
+
+/*
+ * Directory of buildings and rooms.
+ * Building 1 --- * Room 1 --- * Report   (a report always points to a room from this list)
+ * Change this list to your real buildings and rooms. Room code = what is printed on the QR sticker.
+ */
+/* Classrooms (P, K, L) and big shared spaces only, from the AITU map (yuujiso.github.io/aitumap). Offices and service rooms are left out. */
+window.BUILDINGS = [
+  { id: "C1.1", name: "AITU Block C1.1", floors: 3, rooms: [
+    { id: "C1.1.OPEN-SPACE", floor: 3, type: "Open space", seats: null },
+    { id: "C1.1.ASSEMBLY-HALL", floor: 2, type: "Open space", seats: null },
+    { id: "C1.1.221P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.222P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.223P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.224P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.225P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.226P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.227P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.228P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.229P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.230P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.231P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.232P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.233P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.234P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.235P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.238K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.239K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.240K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.241K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.242K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.244K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.245K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.251L", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.252L", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.253L", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.254L", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.255P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.256P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.260P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.318K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.324L", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.326L", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.328L", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.334L", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.341P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.342P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.343P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.344P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.346P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.347P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.348K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.349P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.350P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.352K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.353P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.354K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.355P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.357K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.358K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.360K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.361K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.365P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.366P", floor: 3, type: "Room", seats: null }
+  ]},
+  { id: "C1.2", name: "AITU Block C1.2", floors: 3, rooms: [
+    { id: "C1.2.COWORKING", floor: 1, type: "Open space", seats: null },
+    { id: "C1.2.ATRIUM", floor: 1, type: "Open space", seats: null },
+    { id: "C1.2.121K", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.122K", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.123K", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.124K", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.137P", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.138L", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.221P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.222P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.223K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.224P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.225P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.226P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.227P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.228P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.229P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.230P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.231K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.232P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.233L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.234K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.237L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.239K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.240K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.241K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.242K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.243K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.248L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.249L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.250L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.251L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.252K", floor: 2, type: "Room", seats: null }
+  ]},
+  { id: "C1.3", name: "AITU Block C1.3", floors: 3, rooms: [
+    { id: "C1.3.DINING-HALL", floor: 1, type: "Open space", seats: null },
+    { id: "C1.3.GYM", floor: 1, type: "Open space", seats: null },
+    { id: "C1.3.221K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.222P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.223P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.224P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.225P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.226P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.227P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.228K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.229P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.230P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.231P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.232P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.233P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.234K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.235L", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.236P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.237P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.240P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.241P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.243P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.244P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.247P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.248P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.249K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.250K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.251K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.252K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.253K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.254L", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.255L", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.257P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.258P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.259P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.260P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.261P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.262P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.263P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.264L", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.266P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.267P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.318P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.319P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.321P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.322P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.323K", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.324K", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.327K", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.331P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.357P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.358P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.359P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.360K", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.362P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.365L", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.366L", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.367K", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.370L", floor: 3, type: "Room", seats: null }
+  ]}
+];
+
+</script>
+
+  <!-- ==================== 2. DATA (Firebase or demo) ==================== -->
+<script>
+/*
+ * Data layer. The pages only call Store.* functions.
+ * - Firebase mode: Cloud Firestore + Firebase Authentication.
+ * - Demo mode: localStorage in this browser (when the SETTINGS still have "PASTE..." values).
+ *
+ * Collections (tables):
+ *   buildings/{buildingId}     name, floors
+ *   rooms/{roomId}             buildingId -> buildings, floor, type, seats
+ *   reports/{reportId}         room -> rooms, building, category, description, photo, email, status, createdAt, updatedAt
+ *   statusHistory/{historyId}  reportId -> reports, from, to, by (staff e-mail), at
+ *   staff/{uid}                role
+ */
+(function () {
+  "use strict";
+
+  var cfg = window.FIREBASE_CONFIG || {};
+  var DEMO = !cfg.apiKey || cfg.apiKey.indexOf("PASTE") === 0 || typeof firebase === "undefined";
+
+  /* ---------- directory of buildings and rooms ---------- */
+  var ROOMS = {};
+  (window.BUILDINGS || []).forEach(function (b) {
+    (b.rooms || []).forEach(function (r) {
+      ROOMS[r.id.toUpperCase()] = { id: r.id.toUpperCase(), buildingId: b.id, buildingName: b.name,
+                                    floor: r.floor, type: r.type, seats: r.seats };
+    });
+  });
+  function findRoom(code) {
+    var c = String(code || "").trim().toUpperCase();
+    return ROOMS[c] || ROOMS["C1.1." + c] || null;   /* old stickers like ?room=334L mean block C1.1 */
+  }
+  function allRooms() { return Object.keys(ROOMS).sort().map(function (k) { return ROOMS[k]; }); }
+
+  function buildingOf(room) {
+    var known = findRoom(room);
+    if (known) return known.buildingId;
+    var r = String(room || "").trim();
+    var i = r.search(/[-.]/);
+    return i > 0 ? r.slice(0, i).toUpperCase() : "—";
+  }
+
+  function shortId(id) {
+    return String(id).slice(0, 6).toUpperCase();
+  }
+
+  function withTimeout(promise, ms) {
+    return new Promise(function (resolve, reject) {
+      var t = setTimeout(function () { reject(new Error("timeout")); }, ms);
+      promise.then(function (v) { clearTimeout(t); resolve(v); },
+                   function (e) { clearTimeout(t); reject(e); });
+    });
+  }
+
+  function newId() {
+    return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  }
+
+  /* ---------------- Firebase backend ---------------- */
+  function firebaseStore() {
+    firebase.initializeApp(cfg);
+    var db = firebase.firestore();
+    var auth = firebase.auth();
+    var FV = firebase.firestore.FieldValue;
+    var TS = firebase.firestore.Timestamp;
+    var col = db.collection("reports");
+    var hist = db.collection("statusHistory");
+
+    function toDate(v) { return v && v.toDate ? v.toDate() : (v ? new Date(v) : null); }
+
+    /* runs many writes in batches of 400 (Firestore limit is 500 per batch) */
+    function runBatches(ops) {
+      var chain = Promise.resolve();
+      for (var i = 0; i < ops.length; i += 400) {
+        (function (part) {
+          chain = chain.then(function () {
+            var b = db.batch();
+            part.forEach(function (op) { op(b); });
+            return b.commit();
+          });
+        })(ops.slice(i, i + 400));
+      }
+      return chain;
+    }
+
+    function reportDoc(r) {
+      var d = {
+        room: r.room, building: r.building || buildingOf(r.room), category: r.category,
+        description: r.description || "", photo: r.photo || null, email: r.email || null,
+        status: r.status || "New", createdAt: TS.fromDate(new Date(r.createdAt))
+      };
+      if (r.updatedAt) d.updatedAt = TS.fromDate(new Date(r.updatedAt));
+      if (r.test) d.test = true;
+      return d;
+    }
+    function historyDoc(h) {
+      var d = { reportId: h.reportId, from: h.from, to: h.to, by: h.by, at: TS.fromDate(new Date(h.at)) };
+      if (h.test) d.test = true;
+      return d;
+    }
+
+    return {
+      demo: false,
+      /* every phone gets a random anonymous ID (no name, no e-mail): the rules allow one report
+         per minute per ID, and staff can block an ID that sends spam (Stage 2 plan, item 6) */
+      addReport: function (r) {
+        var user = auth.currentUser ? Promise.resolve(auth.currentUser)
+          : auth.signInAnonymously().then(function (c) { return c.user; });
+        return withTimeout(user.then(function (u) {
+          var ref = col.doc(), b = db.batch();
+          b.set(ref, {
+            room: r.room,
+            building: buildingOf(r.room),
+            category: r.category,
+            description: r.description || "",
+            photo: r.photo || null,
+            email: r.email || null,
+            status: "New",
+            createdAt: FV.serverTimestamp(),
+            uid: u.uid
+          });
+          b.set(db.collection("senders").doc(u.uid), { last: FV.serverTimestamp() });
+          b.set(db.collection("publicStatus").doc(shortId(ref.id)),
+                { status: "New", room: r.room, category: r.category, updatedAt: FV.serverTimestamp() });
+          return b.commit().then(function () { return ref.id; });
+        }), 15000);
+      },
+      /* public status check by report number: only status, room and category, never personal data */
+      getStatus: function (code) {
+        return db.collection("publicStatus").doc(code).get().then(function (d) {
+          return d.exists ? d.data() : null;
+        });
+      },
+      markSpam: function (r) {
+        var b = db.batch();
+        b.update(col.doc(r.id), { spam: true });
+        if (r.uid) b.set(db.collection("blocked").doc(r.uid), { reportId: r.id, at: FV.serverTimestamp() });
+        return b.commit();
+      },
+      onReports: function (cb, onError) {
+        return col.orderBy("createdAt", "desc").onSnapshot(function (snap) {
+          var list = [];
+          snap.forEach(function (doc) {
+            var d = doc.data();
+            list.push({
+              id: doc.id, room: d.room, building: d.building === "AITU" ? "C1.1" : d.building, category: d.category,
+              description: d.description, photo: d.photo, email: d.email, status: d.status,
+              createdAt: toDate(d.createdAt) || new Date(), updatedAt: toDate(d.updatedAt), test: !!d.test,
+              uid: d.uid || null, spam: !!d.spam
+            });
+          });
+          cb(list);
+        }, onError);
+      },
+      /* status change + one line in the log, in one atomic batch */
+      updateStatus: function (id, from, to, by) {
+        var b = db.batch();
+        b.update(col.doc(id), { status: to, updatedAt: FV.serverTimestamp() });
+        b.set(hist.doc(), { reportId: id, from: from, to: to, by: by, at: FV.serverTimestamp() });
+        b.set(db.collection("publicStatus").doc(shortId(id)), { status: to, updatedAt: FV.serverTimestamp() }, { merge: true });
+        return b.commit();
+      },
+      getHistory: function (reportId) {
+        return hist.where("reportId", "==", reportId).get().then(function (snap) {
+          var out = [];
+          snap.forEach(function (doc) { var d = doc.data(); out.push({ id: doc.id, reportId: d.reportId, from: d.from, to: d.to, by: d.by, at: toDate(d.at) || new Date() }); });
+          return out.sort(function (a, b) { return a.at - b.at; });
+        });
+      },
+      getAllHistory: function () {
+        return hist.get().then(function (snap) {
+          var out = [];
+          snap.forEach(function (doc) { var d = doc.data(); out.push({ id: doc.id, reportId: d.reportId, from: d.from, to: d.to, by: d.by, at: toDate(d.at) || new Date(), test: !!d.test }); });
+          return out;
+        });
+      },
+      /* copies the directory from SETTINGS into the buildings and rooms collections */
+      syncDirectory: function () {
+        var ops = [];
+        (window.BUILDINGS || []).forEach(function (bld) {
+          ops.push(function (b) { b.set(db.collection("buildings").doc(bld.id), { name: bld.name, floors: bld.floors || null }); });
+        });
+        allRooms().forEach(function (r) {
+          ops.push(function (b) { b.set(db.collection("rooms").doc(r.id), { buildingId: r.buildingId, floor: r.floor, type: r.type, seats: r.seats }); });
+        });
+        return runBatches(ops);
+      },
+      addMany: function (reports, history) {
+        var ops = [];
+        reports.forEach(function (r) { ops.push(function (b) { b.set(col.doc(r.id), reportDoc(r)); }); });
+        (history || []).forEach(function (h) { ops.push(function (b) { b.set(h.id ? hist.doc(h.id) : hist.doc(), historyDoc(h)); }); });
+        return runBatches(ops);
+      },
+      removeTest: function (reportIds, historyIds) {
+        var ops = [];
+        reportIds.forEach(function (id) { ops.push(function (b) { b.delete(col.doc(id)); }); });
+        historyIds.forEach(function (id) { ops.push(function (b) { b.delete(hist.doc(id)); }); });
+        return runBatches(ops);
+      },
+      clearEmails: function (ids) {
+        return runBatches(ids.map(function (id) {
+          return function (b) { b.update(col.doc(id), { email: null }); };
+        }));
+      },
+      login: function (email, password) { return auth.signInWithEmailAndPassword(email, password); },
+      logout: function () { return auth.signOut(); },
+      onAuth: function (cb) { return auth.onAuthStateChanged(function (u) { cb(u && !u.isAnonymous ? { email: u.email } : null); }); }
+    };
+  }
+
+  /* ---------------- Demo backend (localStorage) ---------------- */
+  function demoStore() {
+    var KEY = "campusfix_demo_reports";
+    var HKEY = "campusfix_demo_history";
+    var AUTH = "campusfix_demo_user";
+    var DEMO_EMAIL = "admin@campusfix.demo";
+    var DEMO_PASS = "demo1234";
+    var listeners = [];
+    var authListeners = [];
+
+    function read(k) {
+      try { return JSON.parse(localStorage.getItem(k || KEY)) || []; } catch (e) { return []; }
+    }
+    function write(list) {
+      localStorage.setItem(KEY, JSON.stringify(list));
+      notify();
+    }
+    function writeHist(list) { localStorage.setItem(HKEY, JSON.stringify(list)); }
+    function normalized() {
+      return read().map(function (r) {
+        var c = Object.assign({}, r);
+        c.createdAt = new Date(r.createdAt);
+        c.updatedAt = r.updatedAt ? new Date(r.updatedAt) : null;
+        return c;
+      }).sort(function (a, b) { return b.createdAt - a.createdAt; });
+    }
+    function notify() {
+      var list = normalized();
+      listeners.forEach(function (cb) { cb(list); });
+    }
+    window.addEventListener("storage", function (e) {
+      if (e.key === KEY) notify();
+    });
+    function iso(d) { return d ? new Date(d).toISOString() : null; }
+    function histOut(h) { var c = Object.assign({}, h); c.at = new Date(h.at); return c; }
+
+    function user() {
+      try { return JSON.parse(sessionStorage.getItem(AUTH)); } catch (e) { return null; }
+    }
+
+    return {
+      demo: true,
+      demoLogin: { email: DEMO_EMAIL, password: DEMO_PASS },
+      addReport: function (r) {
+        return new Promise(function (resolve, reject) {
+          if (!navigator.onLine) { reject(new Error("offline")); return; }
+          setTimeout(function () {
+            var id = newId();
+            var list = read();
+            list.push({
+              id: id, room: r.room, building: buildingOf(r.room), category: r.category,
+              description: r.description || "", photo: r.photo || null, email: r.email || null,
+              status: "New", createdAt: new Date().toISOString()
+            });
+            try { write(list); resolve(id); }
+            catch (e) { reject(new Error("storage")); }
+          }, 400);
+        });
+      },
+      onReports: function (cb) {
+        listeners.push(cb);
+        cb(normalized());
+        return function () { listeners = listeners.filter(function (x) { return x !== cb; }); };
+      },
+      getStatus: function (code) {
+        var r = read().filter(function (x) { return shortId(x.id) === code; })[0];
+        return Promise.resolve(r ? { status: r.status, room: r.room, category: r.category } : null);
+      },
+      markSpam: function (r) {
+        var list = read();
+        list.forEach(function (x) { if (x.id === r.id) x.spam = true; });
+        write(list);
+        return Promise.resolve();
+      },
+      updateStatus: function (id, from, to, by) {
+        var now = new Date().toISOString();
+        var h = read(HKEY);
+        h.push({ id: newId(), reportId: id, from: from, to: to, by: by, at: now });
+        writeHist(h);
+        var list = read();
+        list.forEach(function (r) { if (r.id === id) { r.status = to; r.updatedAt = now; } });
+        write(list);
+        return Promise.resolve();
+      },
+      getHistory: function (reportId) {
+        return Promise.resolve(read(HKEY).filter(function (h) { return h.reportId === reportId; })
+          .map(histOut).sort(function (a, b) { return a.at - b.at; }));
+      },
+      getAllHistory: function () { return Promise.resolve(read(HKEY).map(histOut)); },
+      syncDirectory: function () { return Promise.resolve(); },
+      addMany: function (reports, history) {
+        var list = read(), have = {};
+        list.forEach(function (r) { have[r.id] = true; });
+        reports.forEach(function (r) {
+          if (have[r.id]) return;
+          var c = Object.assign({}, r);
+          c.createdAt = iso(r.createdAt); c.updatedAt = iso(r.updatedAt);
+          list.push(c);
+        });
+        var h = read(HKEY), haveH = {};
+        h.forEach(function (x) { haveH[x.id] = true; });
+        (history || []).forEach(function (x) {
+          if (x.id && haveH[x.id]) return;
+          var c = Object.assign({}, x); c.id = x.id || newId(); c.at = iso(x.at); h.push(c);
+        });
+        try { writeHist(h); write(list); } catch (e) { return Promise.reject(e); }
+        return Promise.resolve();
+      },
+      removeTest: function (reportIds, historyIds) {
+        var r = {}, hh = {};
+        reportIds.forEach(function (id) { r[id] = true; });
+        historyIds.forEach(function (id) { hh[id] = true; });
+        writeHist(read(HKEY).filter(function (x) { return !hh[x.id]; }));
+        write(read().filter(function (x) { return !r[x.id]; }));
+        return Promise.resolve();
+      },
+      clearEmails: function (ids) {
+        var set = {};
+        ids.forEach(function (id) { set[id] = true; });
+        var list = read();
+        list.forEach(function (r) { if (set[r.id]) r.email = null; });
+        write(list);
+        return Promise.resolve();
+      },
+      login: function (email, password) {
+        if (email.trim().toLowerCase() === DEMO_EMAIL && password === DEMO_PASS) {
+          sessionStorage.setItem(AUTH, JSON.stringify({ email: DEMO_EMAIL }));
+          authListeners.forEach(function (cb) { cb(user()); });
+          return Promise.resolve();
+        }
+        return Promise.reject({ code: "auth/invalid-credential" });
+      },
+      logout: function () {
+        sessionStorage.removeItem(AUTH);
+        authListeners.forEach(function (cb) { cb(null); });
+        return Promise.resolve();
+      },
+      onAuth: function (cb) {
+        authListeners.push(cb);
+        cb(user());
+      }
+    };
+  }
+
+  window.Store = DEMO ? demoStore() : firebaseStore();
+  window.Store.shortId = shortId;
+  window.Store.buildingOf = buildingOf;
+  window.Store.findRoom = findRoom;
+  window.Store.allRooms = allRooms;
+  window.Store.newId = newId;
+})();
+
+</script>
+
+  <!-- ==================== 3. REPORT FORM ==================== -->
+<script>
+/* CampusFix — report form logic (R1–R5, R11, R12) */
+(function () {
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var DRAFT_KEY = "campusfix_draft";
+  var MAX_PHOTO_BYTES = 5 * 1024 * 1024;   // R3: up to 5 MB before compression
+  var photoData = null;                     // compressed photo as data URL
+
+
+  /* ---------- R1: room from the QR link (?room=A-204) ---------- */
+  var params = new URLSearchParams(location.search);
+  var roomFromQr = (params.get("room") || "").trim().toUpperCase().slice(0, 20);
+  if (roomFromQr) roomFromQr = Store.findRoom(roomFromQr) ? Store.findRoom(roomFromQr).id : "";   /* unknown room -> let the user choose */
+  Store.allRooms().forEach(function (r) {
+    var o = document.createElement("option");
+    o.value = r.id; o.label = r.buildingName + ", floor " + r.floor + " · " + r.type;
+    $("roomList").appendChild(o);
+  });
+  if (roomFromQr) {
+    $("roomText").textContent = roomFromQr;
+    $("roomChip").classList.remove("d-none");
+  } else {
+    $("roomInputWrap").classList.remove("d-none");
+  }
+  function currentRoom() {
+    return roomFromQr || $("roomInput").value.trim().toUpperCase();
+  }
+
+  /* ---------- R2: category buttons ---------- */
+  var grid = $("catGrid");
+  CATEGORIES.forEach(function (name, i) {
+    var id = "cat" + i;
+    var input = document.createElement("input");
+    input.type = "radio"; input.name = "category"; input.value = name; input.id = id;
+    input.className = "btn-check"; input.autocomplete = "off";
+    var label = document.createElement("label");
+    label.className = "btn btn-outline-cat"; label.htmlFor = id;
+    var NS = "http://www.w3.org/2000/svg";
+    var ico = document.createElementNS(NS, "svg");
+    ico.setAttribute("class", "cat-ico"); ico.setAttribute("aria-hidden", "true"); ico.setAttribute("focusable", "false");
+    var use = document.createElementNS(NS, "use");
+    use.setAttribute("href", "img/icons.svg#i-" + name.toLowerCase().replace(/\s+/g, "-"));
+    ico.appendChild(use);
+    label.appendChild(ico);
+    label.appendChild(document.createTextNode(name));
+    grid.appendChild(input); grid.appendChild(label);
+  });
+  function selectedCategory() {
+    var el = document.querySelector('input[name="category"]:checked');
+    return el ? el.value : "";
+  }
+
+  /* ---------- description counter ---------- */
+  var desc = $("description");
+  function updateCount() { $("charCount").textContent = desc.value.length; }
+  desc.addEventListener("input", updateCount);
+
+  /* ---------- R12: keep the draft if the connection is lost ---------- */
+  function saveDraft() {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        room: $("roomInput").value, category: selectedCategory(),
+        description: desc.value, email: $("email").value
+      }));
+    } catch (e) { /* storage not available */ }
+  }
+  function loadDraft() {
+    try {
+      var d = JSON.parse(localStorage.getItem(DRAFT_KEY));
+      if (!d) return;
+      if (d.room && !roomFromQr) $("roomInput").value = d.room;
+      if (d.category) {
+        var el = document.querySelector('input[name="category"][value="' + d.category + '"]');
+        if (el) el.checked = true;
+      }
+      desc.value = d.description || "";
+      $("email").value = d.email || "";
+      updateCount();
+    } catch (e) { /* ignore */ }
+  }
+  function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch (e) { } }
+  $("reportForm").addEventListener("input", saveDraft);
+  $("reportForm").addEventListener("change", saveDraft);
+  loadDraft();
+
+  /* ---------- R3: photo, compressed in the browser ---------- */
+  $("photo").addEventListener("change", function () {
+    var file = this.files && this.files[0];
+    hideError();
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { showError("Please choose an image file."); this.value = ""; return; }
+    if (file.size > MAX_PHOTO_BYTES) {
+      showError("This photo is too large (" + (file.size / 1048576).toFixed(1) + " MB). The maximum is 5 MB.");
+      this.value = ""; return;
+    }
+    $("photoInfo").textContent = "Preparing photo…";
+    var opts = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true, initialQuality: 0.8 };
+    var job = window.imageCompression
+      ? imageCompression(file, opts).then(function (f) { return imageCompression.getDataUrlFromFile(f); })
+      : canvasCompress(file);
+    job.then(function (url) {
+      if (url.length > 690000) throw new Error("big");
+      photoData = url;
+      $("photoImg").src = url;
+      $("photoPreview").classList.remove("d-none");
+      $("photoLabel").textContent = "Change photo";
+      $("photoInfo").textContent = "Photo ready (" + Math.round(url.length * 0.75 / 1024) + " KB after compression).";
+    }).catch(function () {
+      photoData = null;
+      $("photoInfo").textContent = "";
+      showError("We could not prepare this photo. Try another one or send the report without a photo.");
+    });
+  });
+  /* Fallback if the compression library did not load: shrink with a canvas */
+  function canvasCompress(file) {
+    return readAsDataUrl(file).then(function (src) {
+      return new Promise(function (res, rej) {
+        var img = new Image();
+        img.onload = function () {
+          var scale = Math.min(1, 1280 / Math.max(img.width, img.height));
+          var c = document.createElement("canvas");
+          c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          var q = 0.8, url = c.toDataURL("image/jpeg", q);
+          while (url.length > 400000 && q > 0.3) { q -= 0.1; url = c.toDataURL("image/jpeg", q); }
+          res(url);
+        };
+        img.onerror = rej;
+        img.src = src;
+      });
+    });
+  }
+  function readAsDataUrl(file) {
+    return new Promise(function (res, rej) {
+      var fr = new FileReader();
+      fr.onload = function () { res(fr.result); };
+      fr.onerror = rej;
+      fr.readAsDataURL(file);
+    });
+  }
+  $("photoRemove").addEventListener("click", function () {
+    photoData = null;
+    $("photo").value = "";
+    $("photoPreview").classList.add("d-none");
+    $("photoLabel").textContent = "+ Add photo";
+    $("photoInfo").textContent = "";
+  });
+
+  /* ---------- errors ---------- */
+  function showError(msg) {
+    var box = $("formError");
+    box.textContent = msg;
+    box.classList.remove("d-none");
+  }
+  function hideError() { $("formError").classList.add("d-none"); }
+
+  /* ---------- submit (R5) ---------- */
+  $("reportForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    hideError();
+    var room = currentRoom();
+    var category = selectedCategory();
+    var email = $("email").value.trim();
+
+    if (!room) { showError("Please enter the room, for example 334L."); $("roomInput").focus(); return; }
+    if (!Store.findRoom(room)) { showError("We don't know room " + room + ". Please choose a room from the list."); $("roomInput").focus(); return; }
+    room = Store.findRoom(room).id;   /* "334L" -> "C1.1.334L" */
+    if (!category) { showError("Please choose what is broken."); grid.querySelector("input").focus(); return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError("Please check the e-mail address, or leave it empty."); $("email").focus(); return;
+    }
+    if (!navigator.onLine) { showError("No connection, try again. Your report is saved on this phone."); return; }
+
+    var btn = $("sendBtn");
+    btn.disabled = true; btn.textContent = "SENDING…";
+
+    Store.addReport({
+      room: Store.findRoom(room).id, category: category, description: desc.value.trim(),
+      photo: photoData, email: email || null
+    }).then(function (id) {
+      clearDraft();
+      showSuccess(id, room, category, email);
+    }).catch(function (err) {
+      console.error(err);
+      var offline = !navigator.onLine || (err && /timeout|offline|unavailable/i.test(err.message || err.code || ""));
+      showError(offline
+        ? "No connection, try again. Your report is saved on this phone."
+        : "Sorry, the report was not sent. Please try again.");
+    }).then(function () {
+      btn.disabled = false; btn.textContent = "SEND REPORT";
+    });
+  });
+
+  function showSuccess(id, room, category, email) {
+    $("reportNumber").textContent = "#" + Store.shortId(id);
+    $("sRoom").textContent = room;
+    $("sCat").textContent = category;
+    $("sEmailNote").textContent = email
+      ? "We will e-mail " + email + " when the status changes."
+      : "You reported anonymously. Thank you for helping!";
+    $("formScreen").classList.add("d-none");
+    var s = $("successScreen");
+    s.classList.remove("d-none");
+    s.focus();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- status check by report number (Stage 2 plan, item 8) ---------- */
+  $("statusForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var code = $("statusCode").value.replace(/[^0-9a-z]/gi, "").toUpperCase();
+    var out = $("statusResult");
+    if (code.length !== 6) { out.textContent = "Please type the 6 characters of your report number."; return; }
+    out.textContent = "Checking…";
+    Store.getStatus(code).then(function (st) {
+      out.textContent = st ? "#" + code + ": " + st.status + (st.room ? " · room " + st.room : "") + (st.category ? " · " + st.category : "")
+                           : "No report with number #" + code + ". Check the number and try again.";
+    }).catch(function () { out.textContent = "Could not check the status. Check your connection and try again."; });
+  });
+
+  $("againBtn").addEventListener("click", function () {
+    $("reportForm").reset();
+    $("photoRemove").click();
+    updateCount();
+    $("successScreen").classList.add("d-none");
+    $("formScreen").classList.remove("d-none");
+  });
+})();
+
+</script>
+
+  <!-- ==================== 4. ADMIN PANEL ==================== -->
+<script>
+/* CampusFix — admin panel logic (R6, R7, R8) */
+(function () {
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var all = [];
+  var unsubscribe = null;
+  var me = "";              /* e-mail of the staff member who is logged in */
+  var cleaned = false;      /* old e-mails are removed once per visit */
+  var synced = false;
+
+  $("photoClose").addEventListener("click", function () { $("photoModal").close(); });
+  $("photoModal").addEventListener("click", function (e) { if (e.target === this) this.close(); });
+
+  /* ---------- e-mail (EmailJS) ---------- */
+  var ej = window.EMAILJS_CONFIG || {};
+  var emailReady = !!(window.emailjs && ej.publicKey && ej.publicKey.indexOf("PASTE") !== 0);
+  if (emailReady) emailjs.init({ publicKey: ej.publicKey });
+
+  function sendStatusEmail(r, status) {
+    if (!r.email) return Promise.resolve("none");
+    if (!emailReady) return Promise.resolve("not-configured");
+    return emailjs.send(ej.serviceId, ej.templateId, {
+      to_email: r.email,
+      report_number: "#" + Store.shortId(r.id),
+      room: r.room,
+      category: r.category,
+      status: status
+    }).then(function () { return "sent"; });
+  }
+
+  /* ---------- auth (R6) ---------- */
+  Store.onAuth(function (user) {
+    if (user) {
+      $("loginScreen").classList.add("d-none");
+      $("panelScreen").classList.remove("d-none");
+      $("userBox").classList.remove("d-none");
+      $("userEmail").textContent = user.email;
+      me = user.email;
+      if (!synced) {
+        synced = true;
+        var dirSig = JSON.stringify(window.BUILDINGS).length + ":" + Store.allRooms().length;
+        var lastSig = null; try { lastSig = localStorage.getItem("campusfix_dir_sig"); } catch (e) {}
+        if (lastSig !== dirSig) Store.syncDirectory().then(function () {
+          try { localStorage.setItem("campusfix_dir_sig", dirSig); } catch (e) {}
+        }).catch(function (e) { console.warn("directory sync", e); });
+      }
+      startListening();
+    } else {
+      if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+      $("panelScreen").classList.add("d-none");
+      $("userBox").classList.add("d-none");
+      $("loginScreen").classList.remove("d-none");
+    }
+  });
+
+  $("loginForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    $("loginError").classList.add("d-none");
+    Store.login($("loginEmail").value, $("loginPass").value).catch(function (err) {
+      var box = $("loginError");
+      box.textContent = "Wrong e-mail or password.";
+      if (err && err.code === "auth/too-many-requests") box.textContent = "Too many attempts. Try again later.";
+      box.classList.remove("d-none");
+    });
+  });
+  $("logoutBtn").addEventListener("click", function () { Store.logout(); });
+
+  /* ---------- real-time list (R7, R9) ---------- */
+  function startListening() {
+    if (unsubscribe) return;
+    unsubscribe = Store.onReports(function (list) {
+      notifyNew(list);
+      all = list.filter(function (r) { return !r.spam; });   /* reports marked as spam are hidden */
+      fillFilters();
+      render();
+      if (!cleaned) { cleaned = true; removeOldEmails(); }
+    }, function (err) {
+      console.error(err);
+      toast("You do not have access to the reports. Ask the project owner to add your account to the staff list.", "danger");
+    });
+  }
+
+  /* new reports: visual signal always (toast, title, pulsing counter); sound only if the staff member turned it on */
+  var seen = null, soundOn = false, baseTitle = document.title;
+  $("soundBtn").addEventListener("click", function () {
+    soundOn = !soundOn;
+    this.setAttribute("aria-pressed", String(soundOn));
+    $("soundTxt").textContent = soundOn ? "Sound: on" : "Sound: off";
+    if (soundOn) { var a = $("newSound"); a.currentTime = 0; a.play().catch(function () {}); }
+  });
+  function notifyNew(list) {
+    var ids = {};
+    list.forEach(function (r) { ids[r.id] = true; });
+    if (seen) {
+      var fresh = list.filter(function (r) { return !seen[r.id] && !r.test; });
+      if (fresh.length) {
+        var r = fresh[0];
+        toast("New report: room " + r.room + " · " + r.category, "warning");
+        document.title = "(" + fresh.length + ") New report · " + baseTitle;
+        var c = $("counter"); c.classList.remove("pulse"); void c.offsetWidth; c.classList.add("pulse");
+        if (soundOn) { var a = $("newSound"); a.currentTime = 0; a.play().catch(function () {}); }
+      }
+    }
+    seen = ids;
+  }
+  window.addEventListener("focus", function () { document.title = baseTitle; });
+
+  function fillFilters() {
+    fillSelect($("fBuilding"), unique(all.map(function (r) { return r.building; })));
+    var b = $("fBuilding").value;
+    fillSelect($("fRoom"), unique(all.filter(function (r) { return !b || r.building === b; })
+      .map(function (r) { return r.room; })));
+  }
+  function unique(arr) {
+    return arr.filter(function (v, i) { return v && arr.indexOf(v) === i; }).sort();
+  }
+  function fillSelect(sel, values) {
+    var keep = sel.value;
+    sel.innerHTML = '<option value="">All</option>';
+    values.forEach(function (v) {
+      var o = document.createElement("option");
+      o.value = v; o.textContent = v;
+      sel.appendChild(o);
+    });
+    sel.value = values.indexOf(keep) >= 0 ? keep : "";
+  }
+  ["fBuilding", "fRoom", "fStatus"].forEach(function (id) {
+    $(id).addEventListener("change", function () {
+      if (id === "fBuilding") fillFilters();
+      render();
+    });
+  });
+
+  function fmtDate(d) {
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return p(d.getDate()) + "." + p(d.getMonth() + 1) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+  function statusClass(s) { return "status-" + String(s).replace(/\s+/g, "-"); }
+
+  /* ---------- C5: statistics panel, the same questions as our SQL analysis ---------- */
+  function renderStats() {
+    var total = all.length;
+    var fixed = all.filter(function (r) { return r.status === "Fixed"; });
+    var open = total - fixed.length;
+    $("statNums").innerHTML = "<div><b>" + total + "</b><span>total</span></div><div><b>" + open +
+      "</b><span>open</span></div><div><b>" + fixed.length + "</b><span>fixed</span></div>";
+    var hours = fixed.filter(function (r) { return r.updatedAt; })
+      .map(function (r) { return (r.updatedAt - r.createdAt) / 3600000; });
+    var avg = hours.length ? hours.reduce(function (a, b) { return a + b; }, 0) / hours.length : null;
+    $("statFix").innerHTML = "<div><b>" + (avg === null ? "—" : avg.toFixed(1) + " h") +
+      "</b><span>from report to Fixed (" + hours.length + " reports)</span></div>";
+    var counts = {};
+    all.forEach(function (r) { counts[r.category] = (counts[r.category] || 0) + 1; });
+    var cats = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+    var max = cats.length ? counts[cats[0]] : 1;
+    var box = $("statCats"); box.innerHTML = "";
+    cats.forEach(function (c) {
+      var row = document.createElement("div"); row.className = "stat-row";
+      var name = document.createElement("span"); name.textContent = c;
+      var track = document.createElement("div");
+      var bar = document.createElement("div"); bar.className = "stat-bar";
+      bar.style.width = (100 * counts[c] / max) + "%";
+      track.appendChild(bar);
+      var v = document.createElement("span"); v.className = "v"; v.textContent = counts[c];
+      row.appendChild(name); row.appendChild(track); row.appendChild(v);
+      box.appendChild(row);
+    });
+  }
+
+  function render() {
+    renderStats();
+    var fb = $("fBuilding").value, fr = $("fRoom").value, fs = $("fStatus").value;
+    var list = all.filter(function (r) {
+      return (!fb || r.building === fb) && (!fr || r.room === fr) && (!fs || r.status === fs);
+    });
+    var newCount = all.filter(function (r) { return r.status === "New"; }).length;
+    $("counter").textContent = newCount + (newCount === 1 ? " new report" : " new reports");
+
+    var tbody = $("rows");
+    tbody.innerHTML = "";
+    $("empty").classList.toggle("d-none", list.length > 0);
+
+    list.forEach(function (r) {
+      var tr = document.createElement("tr");
+      var tdNum = document.createElement("td");
+      var nb = document.createElement("button");
+      nb.type = "button"; nb.className = "num-btn";
+      nb.textContent = "#" + Store.shortId(r.id);
+      nb.title = "Status history";
+      nb.addEventListener("click", function () { openHistory(r); });
+      tdNum.appendChild(nb);
+      tr.appendChild(tdNum);
+      addCell(tr, r.room, "text-nowrap");
+      addCell(tr, r.category);
+      addCell(tr, r.description || "—");
+
+      var tdPhoto = document.createElement("td");
+      if (r.photo) {
+        var img = document.createElement("img");
+        img.src = r.photo; img.className = "thumb"; img.tabIndex = 0;
+        img.alt = "Photo of the problem in room " + r.room;
+        img.addEventListener("click", function () { openPhoto(r); });
+        img.addEventListener("keydown", function (e) { if (e.key === "Enter") openPhoto(r); });
+        tdPhoto.appendChild(img);
+      } else {
+        tdPhoto.textContent = "—";
+      }
+      tr.appendChild(tdPhoto);
+      addCell(tr, fmtDate(r.createdAt), "text-nowrap");
+
+      var tdStatus = document.createElement("td");
+      var sel = document.createElement("select");
+      sel.className = "form-select form-select-sm status-select " + statusClass(r.status);
+      sel.setAttribute("aria-label", "Status of report " + Store.shortId(r.id));
+      STATUSES.forEach(function (s) {
+        var o = document.createElement("option");
+        o.value = s; o.textContent = s; if (s === r.status) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener("change", function () { changeStatus(r, sel.value, sel); });
+      tdStatus.appendChild(sel);
+      if (r.status === "New") {
+        var sp = document.createElement("button");
+        sp.type = "button"; sp.className = "btn btn-outline-danger spam-btn";
+        sp.textContent = "Spam";
+        sp.title = "Hide this report and block the phone that sent it";
+        sp.addEventListener("click", function () { markSpam(r, sp); });
+        tdStatus.appendChild(sp);
+      }
+      tr.appendChild(tdStatus);
+      tbody.appendChild(tr);
+    });
+  }
+  function addCell(tr, text, cls) {
+    var td = document.createElement("td");
+    td.textContent = text;
+    if (cls) td.className = cls;
+    tr.appendChild(td);
+  }
+
+  /* ---------- spam: hide the report and block the sender's anonymous ID ---------- */
+  function markSpam(r, btn) {
+    if (!window.confirm("Mark report #" + Store.shortId(r.id) + " as spam? It will be hidden and the phone that sent it cannot send new reports.")) return;
+    btn.disabled = true;
+    Store.markSpam(r).then(function () {
+      toast("Report #" + Store.shortId(r.id) + " marked as spam; the sender is blocked.", "success");
+    }).catch(function (err) {
+      console.error(err);
+      btn.disabled = false;
+      toast("Could not mark the report as spam. Try again.", "danger");
+    });
+  }
+
+  /* ---------- status change + e-mail (R8) ---------- */
+  function changeStatus(r, status, sel) {
+    sel.disabled = true;
+    Store.updateStatus(r.id, r.status, status, me).then(function () {
+      return sendStatusEmail(r, status);
+    }).then(function (res) {
+      var msg = "Report #" + Store.shortId(r.id) + " is now \"" + status + "\".";
+      if (res === "sent") msg += " E-mail sent to the reporter.";
+      if (res === "not-configured") msg += " (E-mail not sent: EmailJS keys are not set in the SETTINGS part of index.html.)";
+      toast(msg, "success");
+    }).catch(function (err) {
+      console.error(err);
+      toast("Could not update the status. Check your connection and try again.", "danger");
+    }).then(function () { sel.disabled = false; });
+  }
+
+  function toast(msg, type) {
+    var t = $("toast");
+    t.className = "alert alert-" + type + " mt-2";
+    t.textContent = msg;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { t.classList.add("d-none"); }, 6000);
+  }
+
+  /* ---------- close buttons of the small windows ---------- */
+  document.querySelectorAll("dialog [data-close]").forEach(function (b) {
+    b.addEventListener("click", function () { b.closest("dialog").close(); });
+  });
+  ["histModal", "roomsModal"].forEach(function (id) {
+    $(id).addEventListener("click", function (e) { if (e.target === this) this.close(); });
+  });
+  function cell(tr, text) { var td = document.createElement("td"); td.textContent = text; tr.appendChild(td); }
+  function fmtFull(d) {
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return p(d.getDate()) + "." + p(d.getMonth() + 1) + "." + d.getFullYear() + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  /* ---------- status history: who changed what and when ---------- */
+  function openHistory(r) {
+    $("histTitle").textContent = "Report #" + Store.shortId(r.id) + " · Room " + r.room + " · " + r.category;
+    var body = $("histRows");
+    body.innerHTML = "<tr><td colspan='3'>Loading…</td></tr>";
+    $("histModal").showModal();
+    Store.getHistory(r.id).then(function (list) {
+      body.innerHTML = "";
+      var first = document.createElement("tr");
+      cell(first, fmtFull(r.createdAt)); cell(first, "Report sent (New)"); cell(first, r.email ? "reporter (e-mail left)" : "anonymous reporter");
+      body.appendChild(first);
+      list.forEach(function (h) {
+        var tr = document.createElement("tr");
+        cell(tr, fmtFull(h.at)); cell(tr, h.from + " → " + h.to); cell(tr, h.by || "—");
+        body.appendChild(tr);
+      });
+    }).catch(function (e) {
+      console.error(e);
+      body.innerHTML = "<tr><td colspan='3'>Could not load the history.</td></tr>";
+    });
+  }
+
+  /* ---------- directory of buildings and rooms ---------- */
+  $("roomsBtn").addEventListener("click", function () {
+    var html = "";
+    (window.BUILDINGS || []).forEach(function (b) {
+      var rooms = Store.allRooms().filter(function (r) { return r.buildingId === b.id; });
+      html += "<h3 class='h6 mt-2'>" + esc(b.name) + " (" + esc(b.id) + ") · " + rooms.length + " rooms</h3>" +
+        "<table class='table rooms-table mb-2'><thead><tr><th>Room</th><th>Floor</th><th>Type</th><th>Seats</th><th>Reports</th></tr></thead><tbody>";
+      rooms.forEach(function (r) {
+        var n = all.filter(function (x) { return x.room === r.id; }).length;
+        html += "<tr><td>" + esc(r.id) + "</td><td>" + esc(r.floor) + "</td><td>" + esc(r.type) + "</td><td>" + (r.seats == null ? "—" : esc(r.seats)) + "</td><td>" + n + "</td></tr>";
+      });
+      html += "</tbody></table>";
+    });
+    $("roomsBody").innerHTML = html;
+    $("roomsModal").showModal();
+  });
+  function esc(t) {
+    return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  /* ---------- download: CSV for Excel, JSON as a full backup ---------- */
+  function download(name, text, type) {
+    var blob = new Blob([text], { type: type });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+  function stamp() {
+    var d = new Date(), p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "_" + p(d.getHours()) + "-" + p(d.getMinutes());
+  }
+  function csvField(v) {
+    var t = v == null ? "" : String(v);
+    if (/^[=+\-@]/.test(t)) t = "'" + t;                 /* stops formulas running in Excel */
+    return /[",\n;]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+  }
+  $("csvBtn").addEventListener("click", function () {
+    var head = ["id", "number", "building", "room", "category", "description", "has_photo", "email", "status", "created_at", "updated_at"];
+    var lines = [head.join(",")];
+    all.forEach(function (r) {
+      lines.push([r.id, "#" + Store.shortId(r.id), r.building, r.room, r.category, r.description, r.photo ? "yes" : "no",
+        r.email || "", r.status, r.createdAt.toISOString(), r.updatedAt ? r.updatedAt.toISOString() : ""].map(csvField).join(","));
+    });
+    download("campusfix_reports_" + stamp() + ".csv", "﻿" + lines.join("\r\n"), "text/csv;charset=utf-8");
+    toast("Downloaded " + all.length + " reports as CSV.", "success");
+  });
+  $("backupBtn").addEventListener("click", function () {
+    Store.getAllHistory().then(function (hist) {
+      var backup = {
+        app: "CampusFix", version: 1, exportedAt: new Date().toISOString(), exportedBy: me,
+        buildings: (window.BUILDINGS || []).map(function (b) { return { id: b.id, name: b.name, floors: b.floors }; }),
+        rooms: Store.allRooms().map(function (r) { return { id: r.id, buildingId: r.buildingId, floor: r.floor, type: r.type, seats: r.seats }; }),
+        reports: all.map(function (r) {
+          return { id: r.id, room: r.room, building: r.building, category: r.category, description: r.description,
+                   photo: r.photo || null, email: r.email || null, status: r.status,
+                   createdAt: r.createdAt.toISOString(), updatedAt: r.updatedAt ? r.updatedAt.toISOString() : null, test: !!r.test };
+        }),
+        statusHistory: hist.map(function (h) {
+          return { id: h.id, reportId: h.reportId, from: h.from, to: h.to, by: h.by, at: h.at.toISOString(), test: !!h.test };
+        })
+      };
+      download("campusfix_backup_" + stamp() + ".json", JSON.stringify(backup, null, 2), "application/json");
+      toast("Backup saved: " + backup.reports.length + " reports, " + backup.statusHistory.length + " history lines.", "success");
+    }).catch(function (e) { console.error(e); toast("Could not make the backup.", "danger"); });
+  });
+
+  /* ---------- restore: puts back reports that are missing (nothing is overwritten) ---------- */
+  $("restoreFile").addEventListener("change", function () {
+    var f = this.files[0];
+    this.value = "";
+    if (!f) return;
+    f.text().then(function (text) {
+      var data = JSON.parse(text);
+      if (data.app !== "CampusFix" || !Array.isArray(data.reports)) throw new Error("not a CampusFix backup");
+      var have = {};
+      all.forEach(function (r) { have[r.id] = true; });
+      var missing = data.reports.filter(function (r) { return !have[r.id] && Store.findRoom(r.room); });
+      var ids = {};
+      missing.forEach(function (r) { ids[r.id] = true; });
+      var hist = (data.statusHistory || []).filter(function (h) { return ids[h.reportId]; });
+      if (!missing.length) { toast("Nothing to restore: all " + data.reports.length + " reports from the backup are already here.", "success"); return; }
+      return Store.addMany(missing, hist).then(function () {
+        toast("Restored " + missing.length + " reports and " + hist.length + " history lines from " + f.name + ".", "success");
+        setTimeout(removeOldEmails, 1500);
+      });
+    }).catch(function (e) {
+      console.error(e);
+      toast("Could not restore: the file is not a CampusFix backup or you have no access.", "danger");
+    });
+  });
+
+  /* ---------- test data: 120 realistic reports for the last 60 days ---------- */
+  var SAMPLES = {
+    "Projector": ["projector does not turn on", "picture is blurry", "no HDMI signal from laptop", "projector lamp is very dark", "remote control is missing"],
+    "Computer": ["PC does not start", "keyboard keys stick", "mouse does not work", "no internet on this computer", "monitor is flickering", "microphone doesn't work"],
+    "Socket": ["socket near window is loose", "socket under the desk has no power", "socket sparks", "extension cord is broken"],
+    "Furniture": ["chair is broken", "desk wobbles", "whiteboard falls off the wall", "door handle is loose"],
+    "Air conditioner": ["too hot, AC is off", "AC is dripping water", "AC makes a loud noise", "room is too cold"],
+    "Restroom": ["no soap", "tap is leaking", "toilet does not flush", "no paper towels"],
+    "Lights": ["two lamps do not work", "light is flickering", "light switch is broken"],
+    "Other": ["window does not close", "smell of paint", "clock is wrong", "blinds are broken"]
+  };
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  $("seedBtn").addEventListener("click", function () {
+    var btn = this;
+    btn.disabled = true;
+    var rooms = Store.allRooms();
+    var weights = ["Computer", "Computer", "Computer", "Socket", "Socket", "Socket", "Projector", "Projector",
+                   "Air conditioner", "Air conditioner", "Lights", "Furniture", "Restroom", "Other"];
+    var reports = [], history = [], now = Date.now(), DAY = 86400000;
+    for (var i = 0; i < 120; i++) {
+      var created = new Date(now - Math.random() * 60 * DAY);
+      var age = (now - created) / DAY;
+      var status = age > 14 ? (Math.random() < 0.85 ? "Fixed" : "In progress")
+                 : age > 3 ? pick(["New", "In progress", "In progress", "Fixed"]) : pick(["New", "New", "In progress"]);
+      var cat = pick(weights), room = pick(rooms);
+      var id = Store.newId();
+      var r = { id: id, room: room.id, building: room.buildingId, category: cat, description: pick(SAMPLES[cat]),
+                photo: null, email: Math.random() < 0.4 ? "student" + (i + 1) + "@example.com" : null,
+                status: status, createdAt: created, updatedAt: null, test: true };
+      var t = created.getTime();
+      if (status !== "New") {
+        t += (0.1 + Math.random() * 1.5) * DAY;
+        history.push({ id: Store.newId(), reportId: id, from: "New", to: "In progress", by: me, at: new Date(Math.min(t, now)), test: true });
+      }
+      if (status === "Fixed") {
+        t += (0.2 + Math.random() * 3) * DAY;
+        history.push({ id: Store.newId(), reportId: id, from: "In progress", to: "Fixed", by: me, at: new Date(Math.min(t, now)), test: true });
+      }
+      if (status !== "New") r.updatedAt = new Date(Math.min(t, now));
+      reports.push(r);
+    }
+    Store.addMany(reports, history).then(function () {
+      toast("Added 120 test reports and " + history.length + " history lines. Use \"Remove test reports\" to delete them.", "success");
+      setTimeout(removeOldEmails, 1500);
+    }).catch(function (e) {
+      console.error(e);
+      toast("Could not add test reports. Check that you are staff and the rules are published.", "danger");
+    }).then(function () { btn.disabled = false; });
+  });
+
+  $("unseedBtn").addEventListener("click", function () {
+    var btn = this;
+    var ids = all.filter(function (r) { return r.test; }).map(function (r) { return r.id; });
+    if (!ids.length) { toast("There are no test reports.", "success"); return; }
+    btn.disabled = true;
+    var set = {};
+    ids.forEach(function (id) { set[id] = true; });
+    Store.getAllHistory().then(function (hist) {
+      var hIds = hist.filter(function (h) { return h.test || set[h.reportId]; }).map(function (h) { return h.id; });
+      return Store.removeTest(ids, hIds).then(function () {
+        toast("Removed " + ids.length + " test reports.", "success");
+      });
+    }).catch(function (e) {
+      console.error(e);
+      toast("Could not remove test reports.", "danger");
+    }).then(function () { btn.disabled = false; });
+  });
+
+  /* ---------- privacy: e-mails older than EMAIL_KEEP_DAYS are deleted ---------- */
+  function removeOldEmails() {
+    var limit = Date.now() - (window.EMAIL_KEEP_DAYS || 30) * 86400000;
+    var ids = all.filter(function (r) { return r.email && r.createdAt.getTime() < limit; }).map(function (r) { return r.id; });
+    if (!ids.length) return;
+    Store.clearEmails(ids).then(function () {
+      toast("Privacy: deleted " + ids.length + " e-mail address" + (ids.length === 1 ? "" : "es") +
+            " older than " + (window.EMAIL_KEEP_DAYS || 30) + " days.", "success");
+    }).catch(function (e) { console.warn("email cleanup", e); });
+  }
+
+  function openPhoto(r) {
+    $("photoBig").src = r.photo;
+    $("photoBig").alt = "Photo of the problem in room " + r.room;
+    $("photoTitle").textContent = "Report #" + Store.shortId(r.id) + " · Room " + r.room + " · " + r.category;
+    $("photoModal").showModal();
+  }
+})();
+
+</script>
+
+  <!-- ==================== 5. QR CODES + PAGE SWITCHING ==================== -->
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var siteUrl = location.protocol.indexOf("http") === 0 && location.hostname !== "localhost"
+    ? location.origin + "/"
+    : "https://campusfix-2621.web.app/";
+  $("baseUrl").value = siteUrl;
+  $("rooms").value = Store.allRooms().map(function (r) { return r.id; }).join("\n");
+
+  function makeQr() {
+    var grid = $("qrGrid");
+    grid.innerHTML = "";
+    if (!window.QRCode) {
+      grid.innerHTML = '<div class="alert alert-danger">The QR library could not load. Check the internet connection and reload the page.</div>';
+      return;
+    }
+    var url = $("baseUrl").value.trim();
+    if (url && url.slice(-1) !== "/") url += "/";
+    $("rooms").value.split("\n").map(function (r) { return r.trim().toUpperCase(); })
+      .filter(Boolean).forEach(function (room) {
+        var link = url + "?room=" + encodeURIComponent(room);
+        var card = document.createElement("div");
+        card.className = "qr-card";
+        var box = document.createElement("div");
+        box.className = "qr-box";
+        card.appendChild(box);
+        var safe = function (t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); };
+        card.insertAdjacentHTML("beforeend",
+          '<div class="room">' + safe(room) + '</div>' +
+          '<div class="fw-semibold">Something broken? Scan to report.</div>' +
+          '<div class="small text-secondary">CampusFix · takes under 1 minute</div>' +
+          '<a class="small no-print" href="' + safe(link) + '">' + safe(link) + '</a>');
+        grid.appendChild(card);
+        new QRCode(box, { text: link, width: 160, height: 160, correctLevel: QRCode.CorrectLevel.M });
+      });
+  }
+  $("qrForm").addEventListener("submit", function (e) { e.preventDefault(); makeQr(); });
+
+  /* ---------- switch between the three views ---------- */
+  var qrMade = false;
+  function show() {
+    var h = location.hash;
+    var view = h === "#admin" ? "Admin" : (h === "#qr" ? "Qr" : "Report");
+    ["Report", "Admin", "Qr"].forEach(function (v) {
+      $("view" + v).classList.toggle("active", v === view);
+    });
+    var wide = view !== "Report";
+    $("headWrap").className = "container " + (wide ? "admin-main" : "cf-main") + " d-flex justify-content-between align-items-center gap-2";
+    $("demoWrap").className = "container " + (wide ? "admin-main" : "cf-main");
+    $("headSub").textContent = view === "Report" ? "Report a problem" : (view === "Admin" ? "Admin panel" : "QR codes for classrooms");
+    document.title = "CampusFix — " + $("headSub").textContent;
+    $("userBox").style.visibility = view === "Report" ? "hidden" : "visible";
+    $("navQr").classList.toggle("d-none", view === "Qr");
+    $("navAdmin").classList.toggle("d-none", view !== "Qr");
+    if (Store.demo) {
+      $("demoBanner").classList.remove("d-none");
+      $("demoText").innerHTML = view === "Report"
+        ? "Demo mode: reports are saved only in this browser. Paste your Firebase keys in the SETTINGS part of this file to go live."
+        : "Demo mode: log in with <strong>admin@campusfix.demo</strong> / <strong>demo1234</strong>. Reports come from this browser only.";
+    }
+    if (view === "Qr" && !qrMade) { makeQr(); qrMade = true; }
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener("hashchange", show);
+  show();
+})();
+</script>
+</body>
+</html>

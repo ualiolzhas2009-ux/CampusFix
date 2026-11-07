@@ -14,6 +14,11 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/staff/$(request.auth.uid));
     }
 
+    // anonymous sender ID (Stage 2 plan, item 6): one random ID per phone, no personal data
+    function notBlocked() {
+      return !exists(/databases/$(database)/documents/blocked/$(request.auth.uid));
+    }
+
     function roomExists(room) {
       return exists(/databases/$(database)/documents/rooms/$(room));
     }
@@ -34,16 +39,19 @@ service cloud.firestore {
 
     // a report sent from the public form
     function validNewReport(d) {
-      return d.keys().hasOnly(['room', 'building', 'category', 'description', 'photo', 'email', 'status', 'createdAt'])
+      return d.keys().hasOnly(['room', 'building', 'category', 'description', 'photo', 'email', 'status', 'createdAt', 'uid'])
         && validReportFields(d)
         && d.status == 'New'
-        && d.createdAt == request.time;
+        && d.createdAt == request.time
+        // the sender must have an (anonymous) ID, must not be blocked, and must pass the 1-per-minute limit
+        && request.auth != null && d.uid == request.auth.uid && notBlocked()
+        && getAfter(/databases/$(database)/documents/senders/$(request.auth.uid)).data.last == request.time;
     }
 
     // a report added by staff: test data or restore from a backup
     function validImportedReport(d) {
       return d.keys().hasOnly(['room', 'building', 'category', 'description', 'photo', 'email', 'status',
-                               'createdAt', 'updatedAt', 'test'])
+                               'createdAt', 'updatedAt', 'test', 'uid', 'spam'])
         && validReportFields(d)
         && d.createdAt <= request.time;
     }
@@ -64,7 +72,7 @@ service cloud.firestore {
       allow read: if isStaff();
       // staff may change the status, or remove the e-mail (privacy: e-mails are kept 30 days)
       allow update: if isStaff()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'email'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'email', 'spam'])
         && request.resource.data.status in ['New', 'In progress', 'Fixed']
         && (request.resource.data.email == resource.data.email || request.resource.data.email == null);
       // real reports are never deleted; only test reports can be removed
@@ -83,6 +91,33 @@ service cloud.firestore {
                 && existsAfter(/databases/$(database)/documents/reports/$(request.resource.data.reportId))));
       allow update: if false;
       allow delete: if isStaff() && resource.data.get('test', false) == true;
+    }
+
+    // last report time per anonymous ID: at most one report per minute
+    match /senders/{uid} {
+      allow read: if false;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['last']) && request.resource.data.last == request.time;
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['last']) && request.resource.data.last == request.time
+        && resource.data.last < request.time - duration.value(60, 's');
+    }
+
+    // IDs that staff marked as spam senders
+    match /blocked/{uid} {
+      allow read, write: if isStaff();
+    }
+
+    // public status by report number: only status, room and category (no personal data)
+    match /publicStatus/{code} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if (request.auth != null && code.size() == 6
+          && request.resource.data.keys().hasOnly(['status', 'room', 'category', 'updatedAt'])
+          && request.resource.data.status == 'New' && request.resource.data.updatedAt == request.time
+          && getAfter(/databases/$(database)/documents/senders/$(request.auth.uid)).data.last == request.time)
+        || isStaff();
+      allow update, delete: if isStaff();
     }
 
     match /staff/{uid} {

@@ -324,6 +324,15 @@ a { color: var(--cf-primary); }
 @media (prefers-reduced-motion: reduce) {
   .success-icon, .success-icon path, .counter.pulse { animation: none; stroke-dashoffset: 0; }
 }
+
+/* ===== Final: clearer hints, status check, spam (Stage 2 plan items 4, 6, 8) ===== */
+.opt-hint { display: inline-block; margin-left: .35rem; padding: 0 .45rem; font-size: .85rem; font-weight: 600;
+  color: #2f3b8f; background: #e8ebf7; border-radius: 6px; vertical-align: middle; }
+.status-check { margin-top: 1rem; }
+.status-check summary { cursor: pointer; font-weight: 600; color: #2f3b8f; min-height: 44px; display: flex; align-items: center; }
+.status-check .row-in { display: flex; gap: .5rem; }
+.status-check .row-in input { text-transform: uppercase; letter-spacing: .1em; }
+.spam-btn { margin-top: .3rem; font-size: .8rem; padding: .1rem .5rem; }
 </style>
 </head>
 <body>
@@ -360,7 +369,7 @@ a { color: var(--cf-primary); }
           </div>
           <div id="roomInputWrap" class="d-none">
             <label for="roomInput" class="form-label">Room</label>
-            <input id="roomInput" class="form-control form-control-lg" placeholder="e.g. 334L" maxlength="20" autocomplete="off" list="roomList">
+            <input id="roomInput" class="form-control form-control-lg" placeholder="e.g. C1.1.334L or 334L" maxlength="20" autocomplete="off" list="roomList">
             <datalist id="roomList"></datalist>
             <div class="form-text">Tip: scan the QR code in the classroom and the room is filled in automatically.</div>
           </div>
@@ -375,7 +384,7 @@ a { color: var(--cf-primary); }
           <div class="form-text text-end"><span id="charCount">0</span>/300</div>
         </div>
         <div class="mb-3">
-          <span class="form-label d-block">Photo <span class="fw-normal text-secondary">(optional)</span></span>
+          <span class="form-label d-block">Photo <span class="opt-hint">optional</span></span>
           <label class="photo-drop" for="photo" id="photoLabel">+ Add photo</label>
           <input type="file" id="photo" accept="image/*" class="visually-hidden">
           <div id="photoPreview" class="photo-preview mt-2 d-none">
@@ -385,7 +394,7 @@ a { color: var(--cf-primary); }
           <div id="photoInfo" class="form-text"></div>
         </div>
         <div class="mb-3">
-          <label for="email" class="form-label">E-mail for updates <span class="fw-normal text-secondary">(optional)</span></label>
+          <label for="email" class="form-label">E-mail for updates <span class="opt-hint">optional</span></label>
           <input type="email" id="email" class="form-control" placeholder="you@example.com" maxlength="100" autocomplete="email">
           <div class="form-text">Leave empty to report anonymously.</div>
           <div class="form-text" id="emailPrivacy">We use your e-mail only to tell you when the problem is fixed. It is deleted after 30 days.</div>
@@ -406,7 +415,19 @@ a { color: var(--cf-primary); }
       <p class="mb-3">Status: <span class="badge border status-New px-2 py-1">New</span></p>
       <p id="sEmailNote" class="small text-secondary"></p>
       <button id="againBtn" class="btn btn-outline-primary w-100" style="min-height:48px">Report another problem</button>
+      <p class="small text-secondary mt-3 mb-0">Keep this number: you can check the status below at any time.</p>
     </section>
+    <details id="statusCheck" class="cf-card status-check">
+      <summary>Check the status of my report</summary>
+      <form id="statusForm" class="mt-2" novalidate>
+        <label for="statusCode" class="form-label small">Report number (6 characters, from the “Report sent” screen)</label>
+        <div class="row-in">
+          <input id="statusCode" class="form-control" maxlength="7" autocomplete="off" placeholder="#1WLNER" required>
+          <button type="submit" class="btn btn-primary" style="min-width:96px">Check</button>
+        </div>
+        <p id="statusResult" class="mt-2 mb-0" aria-live="polite"></p>
+      </form>
+    </details>
   </main>
   <footer class="container cf-main pb-4 text-center small text-secondary">
     CampusFix · ICT project · <a href="#admin">Staff login</a>
@@ -604,22 +625,160 @@ window.EMAIL_KEEP_DAYS = 30;
  * Building 1 --- * Room 1 --- * Report   (a report always points to a room from this list)
  * Change this list to your real buildings and rooms. Room code = what is printed on the QR sticker.
  */
+/* Classrooms (P, K, L) and big shared spaces only, from the AITU map (yuujiso.github.io/aitumap). Offices and service rooms are left out. */
 window.BUILDINGS = [
-  { id: "AITU", name: "AITU main building", floors: null, rooms: [
-    { id: "OPEN-SPACE", floor: 3, type: "Open space", seats: null },
-    { id: "334L", floor: 3, type: "Room", seats: null },
-    { id: "328L", floor: 3, type: "Room", seats: null },
-    { id: "326L", floor: 3, type: "Room", seats: null },
-    { id: "324L", floor: 3, type: "Room", seats: null },
-    { id: "318K", floor: 3, type: "Room", seats: null },
-    { id: "352K", floor: 3, type: "Room", seats: null },
-    { id: "353P", floor: 3, type: "Room", seats: null },
-    { id: "357K", floor: 3, type: "Room", seats: null },
-    { id: "358K", floor: 3, type: "Room", seats: null },
-    { id: "360K", floor: 3, type: "Room", seats: null },
-    { id: "361K", floor: 3, type: "Room", seats: null },
-    { id: "365P", floor: 3, type: "Room", seats: null },
-    { id: "366P", floor: 3, type: "Room", seats: null }
+  { id: "C1.1", name: "AITU Block C1.1", floors: 3, rooms: [
+    { id: "C1.1.OPEN-SPACE", floor: 3, type: "Open space", seats: null },
+    { id: "C1.1.ASSEMBLY-HALL", floor: 2, type: "Open space", seats: null },
+    { id: "C1.1.221P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.222P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.223P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.224P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.225P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.226P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.227P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.228P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.229P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.230P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.231P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.232P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.233P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.234P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.235P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.238K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.239K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.240K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.241K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.242K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.244K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.245K", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.251L", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.252L", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.253L", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.254L", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.255P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.256P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.260P", floor: 2, type: "Room", seats: null },
+    { id: "C1.1.318K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.324L", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.326L", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.328L", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.334L", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.341P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.342P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.343P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.344P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.346P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.347P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.348K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.349P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.350P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.352K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.353P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.354K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.355P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.357K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.358K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.360K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.361K", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.365P", floor: 3, type: "Room", seats: null },
+    { id: "C1.1.366P", floor: 3, type: "Room", seats: null }
+  ]},
+  { id: "C1.2", name: "AITU Block C1.2", floors: 3, rooms: [
+    { id: "C1.2.COWORKING", floor: 1, type: "Open space", seats: null },
+    { id: "C1.2.ATRIUM", floor: 1, type: "Open space", seats: null },
+    { id: "C1.2.121K", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.122K", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.123K", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.124K", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.137P", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.138L", floor: 1, type: "Room", seats: null },
+    { id: "C1.2.221P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.222P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.223K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.224P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.225P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.226P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.227P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.228P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.229P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.230P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.231K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.232P", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.233L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.234K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.237L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.239K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.240K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.241K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.242K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.243K", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.248L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.249L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.250L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.251L", floor: 2, type: "Room", seats: null },
+    { id: "C1.2.252K", floor: 2, type: "Room", seats: null }
+  ]},
+  { id: "C1.3", name: "AITU Block C1.3", floors: 3, rooms: [
+    { id: "C1.3.DINING-HALL", floor: 1, type: "Open space", seats: null },
+    { id: "C1.3.GYM", floor: 1, type: "Open space", seats: null },
+    { id: "C1.3.221K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.222P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.223P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.224P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.225P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.226P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.227P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.228K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.229P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.230P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.231P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.232P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.233P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.234K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.235L", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.236P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.237P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.240P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.241P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.243P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.244P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.247P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.248P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.249K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.250K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.251K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.252K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.253K", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.254L", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.255L", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.257P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.258P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.259P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.260P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.261P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.262P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.263P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.264L", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.266P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.267P", floor: 2, type: "Room", seats: null },
+    { id: "C1.3.318P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.319P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.321P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.322P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.323K", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.324K", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.327K", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.331P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.357P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.358P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.359P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.360K", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.362P", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.365L", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.366L", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.367K", floor: 3, type: "Room", seats: null },
+    { id: "C1.3.370L", floor: 3, type: "Room", seats: null }
   ]}
 ];
 
@@ -653,7 +812,10 @@ window.BUILDINGS = [
                                     floor: r.floor, type: r.type, seats: r.seats };
     });
   });
-  function findRoom(code) { return ROOMS[String(code || "").trim().toUpperCase()] || null; }
+  function findRoom(code) {
+    var c = String(code || "").trim().toUpperCase();
+    return ROOMS[c] || ROOMS["C1.1." + c] || null;   /* old stickers like ?room=334L mean block C1.1 */
+  }
   function allRooms() { return Object.keys(ROOMS).sort().map(function (k) { return ROOMS[k]; }); }
 
   function buildingOf(room) {
@@ -725,17 +887,41 @@ window.BUILDINGS = [
 
     return {
       demo: false,
+      /* every phone gets a random anonymous ID (no name, no e-mail): the rules allow one report
+         per minute per ID, and staff can block an ID that sends spam (Stage 2 plan, item 6) */
       addReport: function (r) {
-        return withTimeout(col.add({
-          room: r.room,
-          building: buildingOf(r.room),
-          category: r.category,
-          description: r.description || "",
-          photo: r.photo || null,
-          email: r.email || null,
-          status: "New",
-          createdAt: FV.serverTimestamp()
-        }), 15000).then(function (ref) { return ref.id; });
+        var user = auth.currentUser ? Promise.resolve(auth.currentUser)
+          : auth.signInAnonymously().then(function (c) { return c.user; });
+        return withTimeout(user.then(function (u) {
+          var ref = col.doc(), b = db.batch();
+          b.set(ref, {
+            room: r.room,
+            building: buildingOf(r.room),
+            category: r.category,
+            description: r.description || "",
+            photo: r.photo || null,
+            email: r.email || null,
+            status: "New",
+            createdAt: FV.serverTimestamp(),
+            uid: u.uid
+          });
+          b.set(db.collection("senders").doc(u.uid), { last: FV.serverTimestamp() });
+          b.set(db.collection("publicStatus").doc(shortId(ref.id)),
+                { status: "New", room: r.room, category: r.category, updatedAt: FV.serverTimestamp() });
+          return b.commit().then(function () { return ref.id; });
+        }), 15000);
+      },
+      /* public status check by report number: only status, room and category, never personal data */
+      getStatus: function (code) {
+        return db.collection("publicStatus").doc(code).get().then(function (d) {
+          return d.exists ? d.data() : null;
+        });
+      },
+      markSpam: function (r) {
+        var b = db.batch();
+        b.update(col.doc(r.id), { spam: true });
+        if (r.uid) b.set(db.collection("blocked").doc(r.uid), { reportId: r.id, at: FV.serverTimestamp() });
+        return b.commit();
       },
       onReports: function (cb, onError) {
         return col.orderBy("createdAt", "desc").onSnapshot(function (snap) {
@@ -743,9 +929,10 @@ window.BUILDINGS = [
           snap.forEach(function (doc) {
             var d = doc.data();
             list.push({
-              id: doc.id, room: d.room, building: d.building, category: d.category,
+              id: doc.id, room: d.room, building: d.building === "AITU" ? "C1.1" : d.building, category: d.category,
               description: d.description, photo: d.photo, email: d.email, status: d.status,
-              createdAt: toDate(d.createdAt) || new Date(), updatedAt: toDate(d.updatedAt), test: !!d.test
+              createdAt: toDate(d.createdAt) || new Date(), updatedAt: toDate(d.updatedAt), test: !!d.test,
+              uid: d.uid || null, spam: !!d.spam
             });
           });
           cb(list);
@@ -756,6 +943,7 @@ window.BUILDINGS = [
         var b = db.batch();
         b.update(col.doc(id), { status: to, updatedAt: FV.serverTimestamp() });
         b.set(hist.doc(), { reportId: id, from: from, to: to, by: by, at: FV.serverTimestamp() });
+        b.set(db.collection("publicStatus").doc(shortId(id)), { status: to, updatedAt: FV.serverTimestamp() }, { merge: true });
         return b.commit();
       },
       getHistory: function (reportId) {
@@ -802,7 +990,7 @@ window.BUILDINGS = [
       },
       login: function (email, password) { return auth.signInWithEmailAndPassword(email, password); },
       logout: function () { return auth.signOut(); },
-      onAuth: function (cb) { return auth.onAuthStateChanged(function (u) { cb(u ? { email: u.email } : null); }); }
+      onAuth: function (cb) { return auth.onAuthStateChanged(function (u) { cb(u && !u.isAnonymous ? { email: u.email } : null); }); }
     };
   }
 
@@ -869,6 +1057,16 @@ window.BUILDINGS = [
         listeners.push(cb);
         cb(normalized());
         return function () { listeners = listeners.filter(function (x) { return x !== cb; }); };
+      },
+      getStatus: function (code) {
+        var r = read().filter(function (x) { return shortId(x.id) === code; })[0];
+        return Promise.resolve(r ? { status: r.status, room: r.room, category: r.category } : null);
+      },
+      markSpam: function (r) {
+        var list = read();
+        list.forEach(function (x) { if (x.id === r.id) x.spam = true; });
+        write(list);
+        return Promise.resolve();
       },
       updateStatus: function (id, from, to, by) {
         var now = new Date().toISOString();
@@ -965,7 +1163,7 @@ window.BUILDINGS = [
   /* ---------- R1: room from the QR link (?room=A-204) ---------- */
   var params = new URLSearchParams(location.search);
   var roomFromQr = (params.get("room") || "").trim().toUpperCase().slice(0, 20);
-  if (roomFromQr && !Store.findRoom(roomFromQr)) roomFromQr = "";   /* unknown room -> let the user choose */
+  if (roomFromQr) roomFromQr = Store.findRoom(roomFromQr) ? Store.findRoom(roomFromQr).id : "";   /* unknown room -> let the user choose */
   Store.allRooms().forEach(function (r) {
     var o = document.createElement("option");
     o.value = r.id; o.label = r.buildingName + ", floor " + r.floor + " · " + r.type;
@@ -1119,6 +1317,7 @@ window.BUILDINGS = [
 
     if (!room) { showError("Please enter the room, for example 334L."); $("roomInput").focus(); return; }
     if (!Store.findRoom(room)) { showError("We don't know room " + room + ". Please choose a room from the list."); $("roomInput").focus(); return; }
+    room = Store.findRoom(room).id;   /* "334L" -> "C1.1.334L" */
     if (!category) { showError("Please choose what is broken."); grid.querySelector("input").focus(); return; }
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       showError("Please check the e-mail address, or leave it empty."); $("email").focus(); return;
@@ -1158,6 +1357,19 @@ window.BUILDINGS = [
     s.focus();
     window.scrollTo(0, 0);
   }
+
+  /* ---------- status check by report number (Stage 2 plan, item 8) ---------- */
+  $("statusForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var code = $("statusCode").value.replace(/[^0-9a-z]/gi, "").toUpperCase();
+    var out = $("statusResult");
+    if (code.length !== 6) { out.textContent = "Please type the 6 characters of your report number."; return; }
+    out.textContent = "Checking…";
+    Store.getStatus(code).then(function (st) {
+      out.textContent = st ? "#" + code + ": " + st.status + (st.room ? " · room " + st.room : "") + (st.category ? " · " + st.category : "")
+                           : "No report with number #" + code + ". Check the number and try again.";
+    }).catch(function () { out.textContent = "Could not check the status. Check your connection and try again."; });
+  });
 
   $("againBtn").addEventListener("click", function () {
     $("reportForm").reset();
@@ -1211,7 +1423,14 @@ window.BUILDINGS = [
       $("userBox").classList.remove("d-none");
       $("userEmail").textContent = user.email;
       me = user.email;
-      if (!synced) { synced = true; Store.syncDirectory().catch(function (e) { console.warn("directory sync", e); }); }
+      if (!synced) {
+        synced = true;
+        var dirSig = JSON.stringify(window.BUILDINGS).length + ":" + Store.allRooms().length;
+        var lastSig = null; try { lastSig = localStorage.getItem("campusfix_dir_sig"); } catch (e) {}
+        if (lastSig !== dirSig) Store.syncDirectory().then(function () {
+          try { localStorage.setItem("campusfix_dir_sig", dirSig); } catch (e) {}
+        }).catch(function (e) { console.warn("directory sync", e); });
+      }
       startListening();
     } else {
       if (unsubscribe) { unsubscribe(); unsubscribe = null; }
@@ -1238,7 +1457,7 @@ window.BUILDINGS = [
     if (unsubscribe) return;
     unsubscribe = Store.onReports(function (list) {
       notifyNew(list);
-      all = list;
+      all = list.filter(function (r) { return !r.spam; });   /* reports marked as spam are hidden */
       fillFilters();
       render();
       if (!cleaned) { cleaned = true; removeOldEmails(); }
@@ -1387,6 +1606,14 @@ window.BUILDINGS = [
       });
       sel.addEventListener("change", function () { changeStatus(r, sel.value, sel); });
       tdStatus.appendChild(sel);
+      if (r.status === "New") {
+        var sp = document.createElement("button");
+        sp.type = "button"; sp.className = "btn btn-outline-danger spam-btn";
+        sp.textContent = "Spam";
+        sp.title = "Hide this report and block the phone that sent it";
+        sp.addEventListener("click", function () { markSpam(r, sp); });
+        tdStatus.appendChild(sp);
+      }
       tr.appendChild(tdStatus);
       tbody.appendChild(tr);
     });
@@ -1396,6 +1623,19 @@ window.BUILDINGS = [
     td.textContent = text;
     if (cls) td.className = cls;
     tr.appendChild(td);
+  }
+
+  /* ---------- spam: hide the report and block the sender's anonymous ID ---------- */
+  function markSpam(r, btn) {
+    if (!window.confirm("Mark report #" + Store.shortId(r.id) + " as spam? It will be hidden and the phone that sent it cannot send new reports.")) return;
+    btn.disabled = true;
+    Store.markSpam(r).then(function () {
+      toast("Report #" + Store.shortId(r.id) + " marked as spam; the sender is blocked.", "success");
+    }).catch(function (err) {
+      console.error(err);
+      btn.disabled = false;
+      toast("Could not mark the report as spam. Try again.", "danger");
+    });
   }
 
   /* ---------- status change + e-mail (R8) ---------- */
